@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/${POSTGRES_DB:orionetl}
+    username: ${POSTGRES_USER:orionetl}
+    password: ${POSTGRES_PASSWORD:orionetl}
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    root: INFO
+    com.elyares.etl: INFO

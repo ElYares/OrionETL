@@ -1,5 +1,9 @@
 package com.elyares.etl.domain.model.pipeline;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -20,6 +24,7 @@ public final class ScheduleConfig {
     private final String cronExpression;
     private final String timezone;
     private final boolean enabled;
+    private final List<AllowedWindow> allowedWindows;
 
     /**
      * Construye una {@code ScheduleConfig} con los parámetros indicados.
@@ -33,9 +38,23 @@ public final class ScheduleConfig {
      * @param enabled        {@code true} para habilitar la ejecución programada
      */
     public ScheduleConfig(String cronExpression, String timezone, boolean enabled) {
+        this(cronExpression, timezone, enabled, List.of());
+    }
+
+    /**
+     * Construye una {@code ScheduleConfig} con ventanas horarias opcionales.
+     *
+     * @param cronExpression expresión cron que define la periodicidad de ejecución
+     * @param timezone       identificador de zona horaria
+     * @param enabled        indicador de schedule habilitado
+     * @param allowedWindows ventanas permitidas de ejecución (vacío = sin restricción)
+     */
+    public ScheduleConfig(String cronExpression, String timezone, boolean enabled,
+                          List<AllowedWindow> allowedWindows) {
         this.cronExpression = cronExpression;
         this.timezone = timezone != null ? timezone : "UTC";
         this.enabled = enabled;
+        this.allowedWindows = allowedWindows != null ? List.copyOf(allowedWindows) : List.of();
     }
 
     /**
@@ -46,7 +65,7 @@ public final class ScheduleConfig {
      * @return instancia de {@code ScheduleConfig} con planificación deshabilitada
      */
     public static ScheduleConfig disabled() {
-        return new ScheduleConfig(null, "UTC", false);
+        return new ScheduleConfig(null, "UTC", false, List.of());
     }
 
     /**
@@ -57,7 +76,7 @@ public final class ScheduleConfig {
      * @return instancia de {@code ScheduleConfig} habilitada con la expresión proporcionada
      */
     public static ScheduleConfig of(String cronExpression) {
-        return new ScheduleConfig(cronExpression, "UTC", true);
+        return new ScheduleConfig(cronExpression, "UTC", true, List.of());
     }
 
     /**
@@ -70,7 +89,20 @@ public final class ScheduleConfig {
      * @return instancia de {@code ScheduleConfig} habilitada con los parámetros proporcionados
      */
     public static ScheduleConfig of(String cronExpression, String timezone) {
-        return new ScheduleConfig(cronExpression, timezone, true);
+        return new ScheduleConfig(cronExpression, timezone, true, List.of());
+    }
+
+    /**
+     * Crea una configuración de schedule habilitada con ventanas horarias permitidas.
+     *
+     * @param cronExpression expresión cron
+     * @param timezone       zona horaria
+     * @param allowedWindows ventanas permitidas de ejecución
+     * @return configuración de schedule con restricciones de ventana
+     */
+    public static ScheduleConfig of(String cronExpression, String timezone,
+                                    List<AllowedWindow> allowedWindows) {
+        return new ScheduleConfig(cronExpression, timezone, true, allowedWindows);
     }
 
     /**
@@ -95,6 +127,26 @@ public final class ScheduleConfig {
     public boolean isEnabled() { return enabled; }
 
     /**
+     * Devuelve la lista de ventanas permitidas de ejecución.
+     *
+     * @return lista inmutable de ventanas; vacía si no hay restricciones horarias
+     */
+    public List<AllowedWindow> getAllowedWindows() { return allowedWindows; }
+
+    /**
+     * Indica si una fecha/hora cae dentro de al menos una ventana permitida.
+     *
+     * @param now fecha/hora zonificada a evaluar
+     * @return {@code true} si no hay ventanas configuradas o si alguna coincide
+     */
+    public boolean isWithinAllowedWindow(ZonedDateTime now) {
+        if (allowedWindows.isEmpty()) {
+            return true;
+        }
+        return allowedWindows.stream().anyMatch(window -> window.matches(now));
+    }
+
+    /**
      * Compara esta configuración con otro objeto por valor,
      * considerando {@code cronExpression}, {@code timezone} y {@code enabled}.
      *
@@ -107,7 +159,8 @@ public final class ScheduleConfig {
         if (!(o instanceof ScheduleConfig s)) return false;
         return enabled == s.enabled
             && Objects.equals(cronExpression, s.cronExpression)
-            && Objects.equals(timezone, s.timezone);
+            && Objects.equals(timezone, s.timezone)
+            && Objects.equals(allowedWindows, s.allowedWindows);
     }
 
     /**
@@ -118,6 +171,30 @@ public final class ScheduleConfig {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(cronExpression, timezone, enabled);
+        return Objects.hash(cronExpression, timezone, enabled, allowedWindows);
+    }
+
+    /**
+     * Ventana horaria de ejecución permitida.
+     *
+     * @param start hora de inicio (incluyente)
+     * @param end   hora de fin (incluyente)
+     * @param days  días de semana permitidos
+     */
+    public record AllowedWindow(LocalTime start, LocalTime end, List<DayOfWeek> days) {
+        public AllowedWindow {
+            Objects.requireNonNull(start, "start must not be null");
+            Objects.requireNonNull(end, "end must not be null");
+            days = days != null ? List.copyOf(days) : List.of();
+        }
+
+        public boolean matches(ZonedDateTime now) {
+            boolean dayAllowed = days.isEmpty() || days.contains(now.getDayOfWeek());
+            if (!dayAllowed) {
+                return false;
+            }
+            LocalTime time = now.toLocalTime();
+            return !time.isBefore(start) && !time.isAfter(end);
+        }
     }
 }
