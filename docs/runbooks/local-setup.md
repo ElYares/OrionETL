@@ -79,7 +79,7 @@ The `.env` file is in `.gitignore` and must **never** be committed to the reposi
 Use Docker Compose to start PostgreSQL:
 
 ```bash
-docker-compose up -d
+docker compose up -d db
 ```
 
 Verify the container is running and healthy:
@@ -97,6 +97,18 @@ The `docker-compose.yml` configures:
 - Health check: `pg_isready -U orionetl`.
 - Persistent volume: `postgres_data` (data survives container restarts).
 - Port `5432` exposed to `localhost`.
+
+### Optional: Start Full Stack with Docker
+
+You can run database + application together:
+
+```bash
+docker compose up -d --build
+```
+
+In container mode the app runs with `SPRING_PROFILES_ACTIVE=docker` and uses:
+- `application-docker.yml`
+- `db` as PostgreSQL host inside the Docker network
 
 ---
 
@@ -169,6 +181,8 @@ The `local` profile activates:
 ```
 
 The application runs on `http://localhost:8080` by default. The port is configurable in `application-local.yml`.
+
+If you started the full stack with Docker Compose, you do not need this step.
 
 ---
 
