@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: OrionEtl-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-orionetl}
+      POSTGRES_USER: ${POSTGRES_USER:-orionetl}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orionetl}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-orionetl} -d ${POSTGRES_DB:-orionetl}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - OrionEtl
+
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: OrionEtl-app
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     POSTGRES_HOST: OrionEtl-db
+  #     POSTGRES_PORT: 5432
+  #     POSTGRES_DB: ${POSTGRES_DB:-orionetl}
+  #     POSTGRES_USER: ${POSTGRES_USER:-orionetl}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orionetl}
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - OrionEtl
+
+networks:
+  OrionEtl:
+    name: OrionEtl
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
