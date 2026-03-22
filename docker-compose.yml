@@ -20,25 +20,26 @@ services:
     networks:
       - OrionEtl
 
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: OrionEtl-app
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     POSTGRES_HOST: OrionEtl-db
-  #     POSTGRES_PORT: 5432
-  #     POSTGRES_DB: ${POSTGRES_DB:-orionetl}
-  #     POSTGRES_USER: ${POSTGRES_USER:-orionetl}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orionetl}
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   networks:
-  #     - OrionEtl
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: OrionEtl-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-orionetl}
+      POSTGRES_USER: ${POSTGRES_USER:-orionetl}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orionetl}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - OrionEtl
 
 networks:
   OrionEtl:
