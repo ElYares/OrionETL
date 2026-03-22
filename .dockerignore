@@ -50,5 +50,4 @@ Thumbs.db
 # Docker (no recursivo)
 # ============================================================
 docker-compose*.yml
-Dockerfile*
 .dockerignore
