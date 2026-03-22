@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orionetl
+    username: orionetl
+    password: orionetl
+
+server:
+  error:
+    include-stacktrace: always
+
+logging:
+  level:
+    root: INFO
+    com.elyares.etl: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.flywaydb: DEBUG
