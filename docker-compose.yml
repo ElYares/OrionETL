@@ -41,6 +41,44 @@ services:
     networks:
       - OrionEtl
 
+  docker-it:
+    image: docker:26-dind
+    container_name: OrionEtl-docker-it
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - OrionEtl
+    profiles:
+      - integration-tests
+
+  it-runner:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: OrionEtl-it-runner
+    working_dir: /workspace
+    environment:
+      DOCKER_HOST: tcp://docker-it:2375
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+      TESTCONTAINERS_HOST_OVERRIDE: docker-it
+    volumes:
+      - ./:/workspace
+    depends_on:
+      docker-it:
+        condition: service_healthy
+    command: ["mvn", "-q", "verify"]
+    networks:
+      - OrionEtl
+    profiles:
+      - integration-tests
+
 networks:
   OrionEtl:
     name: OrionEtl

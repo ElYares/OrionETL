@@ -85,6 +85,7 @@ When a pipeline is triggered (via REST API, CLI, or scheduler), OrionETL execute
 
 ### Planning
 - [Action Plan](./action-plan.md) — Phased implementation roadmap (10 phases, 12 weeks)
+- [Command Reference](./cmd.md) — Comandos operativos de Docker, tests unitarios e IT
 
 ---
 
@@ -137,4 +138,4 @@ V2 introduces scheduling, Spring Batch for chunk-level restartability, and opera
 
 ---
 
-*Documentation maintained alongside source code. Last updated: 2026-03-21.*
+*Documentation maintained alongside source code. Last updated: 2026-03-22.*
