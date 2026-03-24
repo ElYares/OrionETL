@@ -1,0 +1,87 @@
+pipeline:
+  id: "32ad6f40-771d-4d4d-9c9d-4cc0cb70c101"
+  name: "item-sync"
+  version: "1.0.0"
+  description: "Item dimension sync from item_dim.csv"
+  status: ACTIVE
+
+  source-config:
+    type: CSV
+    location: "${ORION_ITEM_SOURCE_PATH:/datasets/archive/item_dim_utf8.csv}"
+    delimiter: ","
+    encoding: "UTF-8"
+    has-header: true
+    connection-properties:
+      nullValues: ",NULL,N/A,-"
+      headerMapping.desc: "description"
+      headerMapping.man_country: "manufacturer_country"
+      headerMapping.supplier: "supplier_name"
+
+  target-config:
+    type: DATABASE
+    schema: "public"
+    staging-table: "etl_items_staging"
+    final-table: "etl_items"
+    load-strategy: UPSERT
+    business-key:
+      - item_key
+    chunk-size: 500
+    fail-fast-on-chunk-error: true
+    rollback-strategy: DELETE_BY_EXECUTION
+    closed-record-guard-enabled: false
+
+  validation-config:
+    mandatory-columns:
+      - item_key
+      - item_name
+      - unit_price
+      - unit
+    column-types:
+      unit_price: DECIMAL
+    amount-fields:
+      - unit_price
+    allow-negative-amounts: false
+    range-rules:
+      unit_price:
+        min: 0
+        max: 100000
+        inclusive: true
+    unique-key-columns:
+      - item_key
+    reject-all-duplicates: false
+    error-threshold-percent: 2.0
+    abort-on-threshold-breach: true
+
+  transformation-config:
+    source-timezone: "UTC"
+    null-values:
+      - ""
+      - "NULL"
+      - "N/A"
+      - "-"
+    rounding-scale: 2
+    rounding-mode: HALF_UP
+    rounding-fields:
+      - unit_price
+
+  retry-policy:
+    max-retries: 2
+    retry-delay-ms: 120000
+    retry-on-errors:
+      - TECHNICAL
+      - EXTERNAL_INTEGRATION
+
+  schedule-config:
+    cron: "0 15 2 * * *"
+    timezone: "UTC"
+    allowed-windows:
+      - start: "02:00"
+        end: "04:30"
+        days:
+          - MONDAY
+          - TUESDAY
+          - WEDNESDAY
+          - THURSDAY
+          - FRIDAY
+          - SATURDAY
+          - SUNDAY

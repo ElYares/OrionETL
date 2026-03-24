@@ -12,13 +12,16 @@ import java.util.List;
  */
 public class ValidateInputDataUseCase {
 
+    private final ValidationChainExecutor validationChainExecutor;
     private final DataValidator schemaValidator;
 
-    public ValidateInputDataUseCase(DataValidator schemaValidator) {
+    public ValidateInputDataUseCase(ValidationChainExecutor validationChainExecutor,
+                                    DataValidator schemaValidator) {
+        this.validationChainExecutor = validationChainExecutor;
         this.schemaValidator = schemaValidator;
     }
 
     public ValidationResult execute(List<RawRecord> records, ValidationConfig validationConfig) {
-        return schemaValidator.validate(records, validationConfig);
+        return validationChainExecutor.execute(records, validationConfig, schemaValidator);
     }
 }

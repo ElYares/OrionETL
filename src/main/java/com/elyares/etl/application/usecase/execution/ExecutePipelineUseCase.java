@@ -17,19 +17,16 @@ public class ExecutePipelineUseCase {
 
     private final GetPipelineUseCase getPipelineUseCase;
     private final PipelineOrchestrationService pipelineOrchestrationService;
-    private final ExecutionLifecycleService executionLifecycleService;
-    private final ETLOrchestrator etlOrchestrator;
+    private final PipelineExecutionRunner pipelineExecutionRunner;
     private final ExecutionMapper executionMapper;
 
     public ExecutePipelineUseCase(GetPipelineUseCase getPipelineUseCase,
                                   PipelineOrchestrationService pipelineOrchestrationService,
-                                  ExecutionLifecycleService executionLifecycleService,
-                                  ETLOrchestrator etlOrchestrator,
+                                  PipelineExecutionRunner pipelineExecutionRunner,
                                   ExecutionMapper executionMapper) {
         this.getPipelineUseCase = getPipelineUseCase;
         this.pipelineOrchestrationService = pipelineOrchestrationService;
-        this.executionLifecycleService = executionLifecycleService;
-        this.etlOrchestrator = etlOrchestrator;
+        this.pipelineExecutionRunner = pipelineExecutionRunner;
         this.executionMapper = executionMapper;
     }
 
@@ -37,13 +34,11 @@ public class ExecutePipelineUseCase {
         Pipeline pipeline = getPipelineUseCase.getDomainById(request.pipelineId());
         pipelineOrchestrationService.validatePreconditions(pipeline, request);
 
-        PipelineExecution execution = executionLifecycleService.createExecution(
-            pipeline.getId(),
+        PipelineExecution execution = pipelineExecutionRunner.run(
+            pipeline,
             request.triggerType(),
             request.triggeredBy()
         );
-        execution = executionLifecycleService.markRunning(execution.getExecutionId());
-        execution = etlOrchestrator.orchestrate(pipeline, execution);
 
         return executionMapper.toDto(execution, pipeline.getName());
     }

@@ -32,6 +32,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-orionetl}
       POSTGRES_USER: ${POSTGRES_USER:-orionetl}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orionetl}
+      ORION_ITEM_SOURCE_PATH: ${ORION_ITEM_SOURCE_PATH:-/datasets/archive/item_dim_utf8.csv}
+    volumes:
+      - ${ORION_DATASETS_HOST_PATH:-/home/elyarestark/develop/datasets/archive}:/datasets/archive:ro
     ports:
       - "8080:8080"
     depends_on:

@@ -15,8 +15,10 @@ import com.elyares.etl.domain.enums.ExecutionStatus;
 import com.elyares.etl.domain.enums.StepStatus;
 import com.elyares.etl.domain.model.execution.PipelineExecution;
 import com.elyares.etl.domain.model.source.ExtractionResult;
+import com.elyares.etl.domain.model.transformation.TransformationResult;
 import com.elyares.etl.domain.model.target.LoadResult;
 import com.elyares.etl.domain.model.target.ProcessedRecord;
+import com.elyares.etl.domain.model.validation.RejectedRecord;
 import com.elyares.etl.domain.model.validation.ValidationError;
 import com.elyares.etl.domain.model.validation.ValidationResult;
 import com.elyares.etl.domain.service.DataQualityService;
@@ -70,7 +72,8 @@ class ETLOrchestratorTest {
             registerAuditUseCase,
             executionLifecycleService,
             orchestrationService,
-            new DataQualityService()
+            new DataQualityService(),
+            List.of()
         );
 
         var pipeline = SampleDataFactory.aPipeline();
@@ -121,7 +124,8 @@ class ETLOrchestratorTest {
             registerAuditUseCase,
             executionLifecycleService,
             orchestrationService,
-            new DataQualityService()
+            new DataQualityService(),
+            List.of()
         );
 
         var pipeline = SampleDataFactory.aPipeline();
@@ -144,11 +148,11 @@ class ETLOrchestratorTest {
         when(extractDataUseCase.execute(any(), any()))
             .thenReturn(ExtractionResult.success(rawRecords, "test-source"));
         when(validateInputDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(transformDataUseCase.execute(anyList(), any(), any()))
-            .thenReturn(processedRecords);
+            .thenReturn(TransformationResult.of(processedRecords, List.of()));
         when(validateBusinessDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(loadProcessedDataUseCase.execute(anyList(), any(), any()))
             .thenReturn(LoadResult.success(2, 0, 0));
 
@@ -193,7 +197,8 @@ class ETLOrchestratorTest {
             registerAuditUseCase,
             executionLifecycleService,
             orchestrationService,
-            new DataQualityService()
+            new DataQualityService(),
+            List.of()
         );
 
         var pipeline = SampleDataFactory.aPipeline();
@@ -216,11 +221,11 @@ class ETLOrchestratorTest {
         when(extractDataUseCase.execute(any(), any()))
             .thenReturn(ExtractionResult.success(rawRecords, "test-source"));
         when(validateInputDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(transformDataUseCase.execute(anyList(), any(), any()))
-            .thenReturn(processedRecords);
+            .thenReturn(TransformationResult.of(processedRecords, List.of()));
         when(validateBusinessDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(loadProcessedDataUseCase.execute(anyList(), any(), any()))
             .thenReturn(LoadResult.failure("db unavailable"));
 
@@ -261,7 +266,8 @@ class ETLOrchestratorTest {
             registerAuditUseCase,
             executionLifecycleService,
             orchestrationService,
-            new DataQualityService()
+            new DataQualityService(),
+            List.of()
         );
 
         var pipeline = SampleDataFactory.aPipeline();
@@ -283,7 +289,14 @@ class ETLOrchestratorTest {
         when(extractDataUseCase.execute(any(), any()))
             .thenReturn(ExtractionResult.success(rawRecords, "test-source"));
         when(validateInputDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.failed(criticalErrors));
+            .thenReturn(ValidationResult.batch(
+                List.of(),
+                rawRecords.stream()
+                    .map(record -> new RejectedRecord(record, "VALIDATE_SCHEMA", "schema failed", criticalErrors))
+                    .toList(),
+                criticalErrors,
+                null
+            ));
 
         PipelineExecution result = orchestrator.orchestrate(pipeline, execution);
 
@@ -322,7 +335,8 @@ class ETLOrchestratorTest {
             registerAuditUseCase,
             executionLifecycleService,
             orchestrationService,
-            new DataQualityService()
+            new DataQualityService(),
+            List.of()
         );
 
         var pipeline = SampleDataFactory.aPipeline();
@@ -345,11 +359,11 @@ class ETLOrchestratorTest {
         when(extractDataUseCase.execute(any(), any()))
             .thenReturn(ExtractionResult.success(rawRecords, "test-source"));
         when(validateInputDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(transformDataUseCase.execute(anyList(), any(), any()))
-            .thenReturn(processedRecords);
+            .thenReturn(TransformationResult.of(processedRecords, List.of()));
         when(validateBusinessDataUseCase.execute(anyList(), any()))
-            .thenReturn(ValidationResult.ok());
+            .thenReturn(ValidationResult.ok(rawRecords));
         when(loadProcessedDataUseCase.execute(anyList(), any(), any()))
             .thenReturn(LoadResult.success(2, 0, 0));
         when(registerAuditUseCase.execute(any(), any(), anyMap()))

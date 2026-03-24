@@ -26,6 +26,9 @@ public final class ProcessedRecord {
     /** Identificador de versión del pipeline ETL que produjo este registro transformado. */
     private final String pipelineVersion;
 
+    /** Referencia legible de la fuente original (archivo, URL, consulta) para trazabilidad en LOAD. */
+    private final String sourceReference;
+
     /** Marca temporal en la que se aplicó la transformación al registro. */
     private final Instant transformedAt;
 
@@ -42,9 +45,24 @@ public final class ProcessedRecord {
      */
     public ProcessedRecord(long sourceRowNumber, Map<String, Object> data,
                            String pipelineVersion, Instant transformedAt) {
+        this(sourceRowNumber, data, pipelineVersion, null, transformedAt);
+    }
+
+    /**
+     * Construye un nuevo {@code ProcessedRecord} incluyendo la referencia de la fuente original.
+     *
+     * @param sourceRowNumber número de fila del registro en la fuente de datos original
+     * @param data            mapa de campos transformados; no puede ser {@code null}
+     * @param pipelineVersion identificador de versión del pipeline ETL que generó el registro
+     * @param sourceReference archivo, URL o referencia de consulta del registro original
+     * @param transformedAt   marca temporal de transformación; si es {@code null} se usa {@code Instant.now()}
+     */
+    public ProcessedRecord(long sourceRowNumber, Map<String, Object> data,
+                           String pipelineVersion, String sourceReference, Instant transformedAt) {
         this.sourceRowNumber = sourceRowNumber;
         this.data = Objects.requireNonNull(data);
         this.pipelineVersion = pipelineVersion;
+        this.sourceReference = sourceReference;
         this.transformedAt = transformedAt != null ? transformedAt : Instant.now();
     }
 
@@ -68,6 +86,13 @@ public final class ProcessedRecord {
      * @return versión del pipeline, o {@code null} si no fue especificada
      */
     public String getPipelineVersion() { return pipelineVersion; }
+
+    /**
+     * Devuelve la referencia legible de la fuente original del registro.
+     *
+     * @return archivo, URL o referencia de consulta; puede ser {@code null}
+     */
+    public String getSourceReference() { return sourceReference; }
 
     /**
      * Devuelve la marca temporal en la que se aplicó la transformación al registro.

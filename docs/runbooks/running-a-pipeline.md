@@ -59,10 +59,11 @@ curl -X POST http://localhost:8080/api/v1/pipelines/sales-daily/execute \
 
 ```json
 {
-  "status": "ok",
+  "success": true,
   "data": {
     "executionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "pipelineId": "sales-daily",
+    "pipelineId": "9b4d1aa8-e5f2-4e38-b3cc-aeb89d3ab001",
+    "pipelineName": "sales-daily",
     "status": "RUNNING",
     "startedAt": "2026-03-21T02:00:05.123Z",
     "triggeredBy": "api:analyst@example.com"
@@ -128,10 +129,11 @@ curl http://localhost:8080/api/v1/executions/3fa85f64-5717-4562-b3fc-2c963f66afa
 
 ```json
 {
-  "status": "ok",
+  "success": true,
   "data": {
     "executionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "pipelineId": "sales-daily",
+    "pipelineId": "9b4d1aa8-e5f2-4e38-b3cc-aeb89d3ab001",
+    "pipelineName": "sales-daily",
     "status": "RUNNING",
     "startedAt": "2026-03-21T02:00:05.123Z",
     "finishedAt": null,
@@ -335,6 +337,14 @@ curl -X POST http://localhost:8080/api/v1/pipelines/sales-daily/execute \
 ```
 
 If the pipeline has remaining automatic retries (`retryPolicy.maxRetries`), it may be retried automatically by the engine before you need to manually intervene.
+
+When this happens:
+
+- the first failed execution remains persisted as `FAILED`
+- a new execution is created with `triggerType = RETRY`
+- the new execution stores `parentExecutionId`
+- `retryCount` increases on the retry execution
+- `LogNotificationService` emits structured logs for `FAILED`, `PARTIAL`, or `SUCCESS`
 
 ---
 

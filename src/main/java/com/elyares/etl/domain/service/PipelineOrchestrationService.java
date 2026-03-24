@@ -67,7 +67,9 @@ public class PipelineOrchestrationService {
      */
     public void validatePreconditions(Pipeline pipeline, ExecutionRequestDto request) {
         noDuplicateRule.evaluate(pipeline);
-        windowRule.evaluate(pipeline.getScheduleConfig(), Instant.now());
+        if (request.triggerType() == TriggerType.SCHEDULED || request.triggerType() == TriggerType.RETRY) {
+            windowRule.evaluate(pipeline.getScheduleConfig(), Instant.now());
+        }
         if (request.triggerType() == TriggerType.RETRY) {
             int retryCount = parseRetryCount(request);
             ErrorType lastErrorType = parseErrorType(request);
@@ -90,6 +92,10 @@ public class PipelineOrchestrationService {
      * @return estado final calculado para la ejecución
      */
     public ExecutionStatus determineExecutionStatus(PipelineExecution execution) {
+        return determineExecutionStatus(execution, execution.getTotalRejected().value());
+    }
+
+    public ExecutionStatus determineExecutionStatus(PipelineExecution execution, long totalRejected) {
         if (execution.getStatus().isTerminal() &&
             execution.getStatus() != ExecutionStatus.SUCCESS) {
             return execution.getStatus();
@@ -97,7 +103,7 @@ public class PipelineOrchestrationService {
         if (criticalErrorRule.hasCriticalErrors(execution)) {
             return ExecutionStatus.FAILED;
         }
-        if (!execution.getTotalRejected().isZero()) {
+        if (totalRejected > 0) {
             return ExecutionStatus.PARTIAL;
         }
         return ExecutionStatus.SUCCESS;

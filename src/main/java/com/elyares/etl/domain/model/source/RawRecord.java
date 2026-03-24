@@ -1,6 +1,8 @@
 package com.elyares.etl.domain.model.source;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -59,7 +61,9 @@ public final class RawRecord {
      *
      * @return mapa de campos; nunca {@code null}
      */
-    public Map<String, Object> getData() { return Map.copyOf(data); }
+    public Map<String, Object> getData() {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(data));
+    }
 
     /**
      * Devuelve el identificador de la fuente de datos de origen.

@@ -1,8 +1,9 @@
 package com.elyares.etl.domain.contract;
 
 import com.elyares.etl.domain.model.execution.PipelineExecution;
+import com.elyares.etl.domain.model.pipeline.Pipeline;
 import com.elyares.etl.domain.model.source.RawRecord;
-import com.elyares.etl.domain.model.target.ProcessedRecord;
+import com.elyares.etl.domain.model.transformation.TransformationResult;
 
 import java.util.List;
 
@@ -11,8 +12,8 @@ import java.util.List;
  *
  * <p>Cada implementación encapsula la lógica de transformación específica de un pipeline:
  * mapeo de campos, conversión de tipos, enriquecimiento de datos, aplicación de reglas
- * de negocio, etc. La transformación convierte {@code RawRecord}s en {@code ProcessedRecord}s
- * listos para la fase de carga.</p>
+ * de negocio, etc. La transformación convierte {@code RawRecord}s en registros
+ * procesados y, si es necesario, registra rechazos por transformación.</p>
  *
  * <p>El método {@link #getPipelineName()} vincula cada transformador con el pipeline
  * para el que fue diseñado, permitiendo su resolución por nombre en el contexto de ejecución.</p>
@@ -29,9 +30,10 @@ public interface DataTransformer {
      *
      * @param records   lista de registros en bruto extraídos de la fuente de datos.
      * @param execution contexto de la ejecución del pipeline en curso.
-     * @return lista de {@code ProcessedRecord}s resultantes de aplicar las transformaciones.
+     * @param pipeline  definición completa del pipeline con su configuración de transformación.
+     * @return resultado agregado de transformación con registros procesados y rechazados.
      */
-    List<ProcessedRecord> transform(List<RawRecord> records, PipelineExecution execution);
+    TransformationResult transform(List<RawRecord> records, Pipeline pipeline, PipelineExecution execution);
 
     /**
      * Devuelve el nombre del pipeline al que pertenece este transformador.
@@ -42,4 +44,13 @@ public interface DataTransformer {
      * @return nombre canónico del pipeline asociado a esta implementación.
      */
     String getPipelineName();
+
+    /**
+     * Orden de ejecución dentro de una cadena de transformadores.
+     *
+     * @return prioridad del transformador; menor valor se ejecuta primero
+     */
+    default int getOrder() {
+        return 0;
+    }
 }

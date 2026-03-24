@@ -28,12 +28,21 @@ public class ListExecutionsUseCase {
     }
 
     public List<PipelineExecutionDto> execute(String pipelineId, int limit) {
-        PipelineId id = PipelineId.of(pipelineId);
-        Pipeline pipeline = pipelineRepository.findById(id)
-            .orElseThrow(() -> new PipelineNotFoundException(pipelineId));
+        Pipeline pipeline = resolvePipeline(pipelineId);
+        PipelineId id = pipeline.getId();
 
         return executionRepository.findByPipelineId(id, limit).stream()
             .map(execution -> executionMapper.toDto(execution, pipeline.getName()))
             .toList();
+    }
+
+    private Pipeline resolvePipeline(String pipelineRef) {
+        try {
+            return pipelineRepository.findById(PipelineId.of(pipelineRef))
+                .orElseThrow(() -> new PipelineNotFoundException(pipelineRef));
+        } catch (IllegalArgumentException | PipelineNotFoundException ex) {
+            return pipelineRepository.findByName(pipelineRef)
+                .orElseThrow(() -> new PipelineNotFoundException(pipelineRef));
+        }
     }
 }

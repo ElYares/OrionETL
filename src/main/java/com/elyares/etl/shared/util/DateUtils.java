@@ -50,10 +50,9 @@ public final class DateUtils {
     /**
      * Convierte una cadena de fecha-hora en un {@link Instant} normalizado a UTC.
      *
-     * <p>Intenta analizar la cadena con cada formateador de
-     * {@link #SUPPORTED_DATETIME_FORMATTERS} en orden. El {@link LocalDateTime}
-     * resultante se interpreta en la zona horaria {@code sourceZone} y se convierte
-     * a UTC.</p>
+     * <p>Si la entrada no incluye componente de hora pero sí representa una fecha válida,
+     * se normaliza al inicio del día en la zona de origen. Esto permite reutilizar el
+     * mismo helper para campos DATE y DATETIME dentro del pipeline.</p>
      *
      * @param dateTimeStr cadena de fecha-hora a convertir
      * @param sourceZone  zona horaria en la que está expresado {@code dateTimeStr}
@@ -67,7 +66,11 @@ public final class DateUtils {
                 return ldt.atZone(sourceZone).toInstant();
             } catch (DateTimeParseException ignored) {}
         }
-        throw new IllegalArgumentException("Cannot parse datetime: " + dateTimeStr);
+        try {
+            return parseDate(dateTimeStr).atStartOfDay(sourceZone).toInstant();
+        } catch (IllegalArgumentException ignored) {
+            throw new IllegalArgumentException("Cannot parse datetime: " + dateTimeStr);
+        }
     }
 
     /**

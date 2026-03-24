@@ -2,6 +2,8 @@ package com.elyares.etl.domain.model.validation;
 
 import com.elyares.etl.domain.enums.ErrorSeverity;
 
+import com.elyares.etl.domain.model.source.RawRecord;
+
 import java.util.List;
 
 /**
@@ -22,8 +24,17 @@ public final class ValidationResult {
     /** Indica si el registro superó la validación sin errores bloqueantes. */
     private final boolean valid;
 
+    /** Registros que sí pueden seguir al siguiente paso. */
+    private final List<RawRecord> validRecords;
+
+    /** Registros rechazados durante la validación. */
+    private final List<RejectedRecord> rejectedRecords;
+
     /** Lista inmutable de errores de validación detectados en el registro. */
     private final List<ValidationError> errors;
+
+    /** Reporte agregado de calidad para el lote validado. */
+    private final DataQualityReport dataQualityReport;
 
     /**
      * Constructor privado. Las instancias deben crearse a través de los métodos de fábrica
@@ -32,9 +43,16 @@ public final class ValidationResult {
      * @param valid  {@code true} si el registro es válido
      * @param errors lista de errores de validación; puede ser {@code null} (se tratará como vacía)
      */
-    private ValidationResult(boolean valid, List<ValidationError> errors) {
+    private ValidationResult(boolean valid,
+                             List<RawRecord> validRecords,
+                             List<RejectedRecord> rejectedRecords,
+                             List<ValidationError> errors,
+                             DataQualityReport dataQualityReport) {
         this.valid = valid;
+        this.validRecords = validRecords != null ? List.copyOf(validRecords) : List.of();
+        this.rejectedRecords = rejectedRecords != null ? List.copyOf(rejectedRecords) : List.of();
         this.errors = errors != null ? List.copyOf(errors) : List.of();
+        this.dataQualityReport = dataQualityReport;
     }
 
     /**
@@ -43,7 +61,11 @@ public final class ValidationResult {
      * @return nueva instancia con {@code valid = true} y lista de errores vacía
      */
     public static ValidationResult ok() {
-        return new ValidationResult(true, List.of());
+        return new ValidationResult(true, List.of(), List.of(), List.of(), null);
+    }
+
+    public static ValidationResult ok(List<RawRecord> validRecords) {
+        return new ValidationResult(true, validRecords, List.of(), List.of(), null);
     }
 
     /**
@@ -54,7 +76,7 @@ public final class ValidationResult {
      * @return nueva instancia con {@code valid = false} y los errores proporcionados
      */
     public static ValidationResult failed(List<ValidationError> errors) {
-        return new ValidationResult(false, errors);
+        return new ValidationResult(false, List.of(), List.of(), errors, null);
     }
 
     /**
@@ -71,7 +93,15 @@ public final class ValidationResult {
     public static ValidationResult of(List<ValidationError> errors) {
         boolean allPass = errors.stream().noneMatch(e -> e.severity() == ErrorSeverity.ERROR
             || e.severity() == ErrorSeverity.CRITICAL);
-        return new ValidationResult(allPass, errors);
+        return new ValidationResult(allPass, List.of(), List.of(), errors, null);
+    }
+
+    public static ValidationResult batch(List<RawRecord> validRecords,
+                                         List<RejectedRecord> rejectedRecords,
+                                         List<ValidationError> errors,
+                                         DataQualityReport dataQualityReport) {
+        boolean batchValid = rejectedRecords == null || rejectedRecords.isEmpty();
+        return new ValidationResult(batchValid, validRecords, rejectedRecords, errors, dataQualityReport);
     }
 
     /**
@@ -81,12 +111,18 @@ public final class ValidationResult {
      */
     public boolean isValid() { return valid; }
 
+    public List<RawRecord> getValidRecords() { return validRecords; }
+
+    public List<RejectedRecord> getRejectedRecords() { return rejectedRecords; }
+
     /**
      * Devuelve la lista inmutable de errores de validación detectados en el registro.
      *
      * @return lista de {@link ValidationError}; nunca {@code null}, vacía si no hay errores
      */
     public List<ValidationError> getErrors() { return errors; }
+
+    public DataQualityReport getDataQualityReport() { return dataQualityReport; }
 
     /**
      * Devuelve el número de errores no críticos (severidad {@link ErrorSeverity#ERROR}) presentes
@@ -96,6 +132,8 @@ public final class ValidationResult {
      * @return cantidad de errores no críticos
      */
     public long getErrorCount() { return errors.stream().filter(e -> !e.isCritical()).count(); }
+
+    public long getInvalidCount() { return rejectedRecords.size(); }
 
     /**
      * Devuelve el número de errores de severidad {@link ErrorSeverity#CRITICAL} presentes
@@ -111,4 +149,8 @@ public final class ValidationResult {
      * @return {@code true} si existe al menos un error crítico; {@code false} en caso contrario
      */
     public boolean hasCriticalErrors() { return getCriticalCount() > 0; }
+
+    public double getErrorRate() {
+        return dataQualityReport != null ? dataQualityReport.errorRatePercent() : 0.0;
+    }
 }

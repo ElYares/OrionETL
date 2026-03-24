@@ -38,4 +38,20 @@ class RetryEligibilityRuleTest {
 
         assertThat(rule.isEligible(1, ErrorType.TECHNICAL, retryPolicy)).isTrue();
     }
+
+    @Test
+    void shouldNotBeEligibleWhenRetriesAlreadyExhausted() {
+        RetryEligibilityRule rule = new RetryEligibilityRule();
+        RetryPolicy retryPolicy = new RetryPolicy(2, 1000, List.of(ErrorType.TECHNICAL));
+
+        assertThat(rule.isEligible(2, ErrorType.TECHNICAL, retryPolicy)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEligibleForDataQualityErrors() {
+        RetryEligibilityRule rule = new RetryEligibilityRule();
+        RetryPolicy retryPolicy = new RetryPolicy(3, 1000, List.of(ErrorType.TECHNICAL, ErrorType.EXTERNAL_INTEGRATION));
+
+        assertThat(rule.isEligible(1, ErrorType.DATA_QUALITY, retryPolicy)).isFalse();
+    }
 }

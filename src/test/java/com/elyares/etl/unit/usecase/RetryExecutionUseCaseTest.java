@@ -107,6 +107,65 @@ class RetryExecutionUseCaseTest {
     }
 
     @Test
+    void shouldIncrementRetryCountFromPreviousAttempt() {
+        var pipeline = SampleDataFactory.aPipeline();
+        var failedExecution = new PipelineExecution(
+            null,
+            pipeline.getId(),
+            com.elyares.etl.domain.valueobject.ExecutionId.generate(),
+            TriggerType.RETRY,
+            "tester"
+        );
+        failedExecution.incrementRetryCount();
+        failedExecution.addError(new ExecutionError(
+            java.util.UUID.randomUUID(),
+            failedExecution.getExecutionId(),
+            "LOAD",
+            ErrorType.TECHNICAL,
+            com.elyares.etl.domain.enums.ErrorSeverity.ERROR,
+            "ERR-2",
+            "failure",
+            null,
+            null
+        ));
+
+        PipelineExecution retryExecution = new PipelineExecution(
+            null,
+            pipeline.getId(),
+            com.elyares.etl.domain.valueobject.ExecutionId.generate(),
+            TriggerType.RETRY,
+            "retry-user"
+        );
+
+        ExecutionRepository executionRepository = mock(ExecutionRepository.class);
+        PipelineRepository pipelineRepository = mock(PipelineRepository.class);
+        RetryEligibilityRule retryEligibilityRule = mock(RetryEligibilityRule.class);
+        ExecutionLifecycleService lifecycleService = mock(ExecutionLifecycleService.class);
+        ExecutionMapper executionMapper = mock(ExecutionMapper.class);
+
+        when(executionRepository.findByExecutionId(failedExecution.getExecutionId())).thenReturn(Optional.of(failedExecution));
+        when(pipelineRepository.findById(pipeline.getId())).thenReturn(Optional.of(pipeline));
+        when(lifecycleService.createExecution(pipeline.getId(), TriggerType.RETRY, "retry-user")).thenReturn(retryExecution);
+        when(executionRepository.save(any(PipelineExecution.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        RetryExecutionUseCase useCase = new RetryExecutionUseCase(
+            executionRepository,
+            pipelineRepository,
+            retryEligibilityRule,
+            lifecycleService,
+            executionMapper
+        );
+
+        PipelineExecution createdRetry = useCase.createRetryExecution(
+            failedExecution.getExecutionId().toString(),
+            "retry-user"
+        );
+
+        assertThat(createdRetry.getRetryCount()).isEqualTo(2);
+        assertThat(createdRetry.getParentExecutionId()).isEqualTo(failedExecution.getId());
+    }
+
+    @Test
     void shouldThrowWhenFailedExecutionNotFound() {
         ExecutionRepository executionRepository = mock(ExecutionRepository.class);
         PipelineRepository pipelineRepository = mock(PipelineRepository.class);

@@ -50,11 +50,16 @@ public final class RejectedRecord {
      */
     public RejectedRecord(RawRecord originalRecord, String stepName, String rejectionReason,
                           List<ValidationError> validationErrors) {
+        this(originalRecord, stepName, rejectionReason, validationErrors, Instant.now());
+    }
+
+    public RejectedRecord(RawRecord originalRecord, String stepName, String rejectionReason,
+                          List<ValidationError> validationErrors, Instant rejectedAt) {
         this.originalRecord = Objects.requireNonNull(originalRecord);
         this.stepName = Objects.requireNonNull(stepName);
         this.rejectionReason = Objects.requireNonNull(rejectionReason);
         this.validationErrors = validationErrors != null ? List.copyOf(validationErrors) : List.of();
-        this.rejectedAt = Instant.now();
+        this.rejectedAt = rejectedAt != null ? rejectedAt : Instant.now();
     }
 
     /**

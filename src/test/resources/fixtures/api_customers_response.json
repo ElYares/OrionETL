@@ -1,0 +1,25 @@
+{
+  "customers": [
+    {
+      "customer_id": "C1001",
+      "first_name": "Ana",
+      "last_name": "Lopez",
+      "status": "ACTIVE"
+    },
+    {
+      "customer_id": "C1002",
+      "first_name": "Luis",
+      "last_name": "Martinez",
+      "status": "INACTIVE"
+    },
+    {
+      "customer_id": "C1003",
+      "first_name": "Mara",
+      "last_name": "Santos",
+      "status": "ACTIVE"
+    }
+  ],
+  "meta": {
+    "next_cursor": null
+  }
+}

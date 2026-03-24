@@ -8,18 +8,18 @@ This document is the authoritative implementation roadmap for OrionETL. It defin
 
 ## Overview
 
-| Phase | Weeks | Focus |
-|---|---|---|
-| Phase 1 | 1–2 | Project foundation: Maven, Docker, Flyway, shared layer, domain model |
-| Phase 2 | 3–4 | Domain logic and application core: use cases, orchestrator, business rules |
-| Phase 3 | 5 | Infrastructure - Persistence: JPA entities, repositories, adapters |
-| Phase 4 | 6 | Infrastructure - Extractors: CSV and API extractors |
-| Phase 5 | 7 | Infrastructure - Transformers and Validators |
-| Phase 6 | 8 | Infrastructure - Loaders: staging, validation, promotion, rejected records |
-| Phase 7 | 9 | First pipeline end-to-end: Sales pipeline |
-| Phase 8 | 10 | REST interface and monitoring |
-| Phase 9 | 11 | Second and third pipelines: Inventory and Customer |
-| Phase 10 | 12 | Hardening, V2 preparation, Docker, documentation |
+| Phase    | Weeks | Focus                                                                      |
+| -------- | ----- | -------------------------------------------------------------------------- |
+| Phase 1  | 1–2   | Project foundation: Maven, Docker, Flyway, shared layer, domain model      |
+| Phase 2  | 3–4   | Domain logic and application core: use cases, orchestrator, business rules |
+| Phase 3  | 5     | Infrastructure - Persistence: JPA entities, repositories, adapters         |
+| Phase 4  | 6     | Infrastructure - Extractors: CSV and API extractors                        |
+| Phase 5  | 7     | Infrastructure - Transformers and Validators                               |
+| Phase 6  | 8     | Infrastructure - Loaders: staging, validation, promotion, rejected records |
+| Phase 7  | 9     | First pipeline end-to-end: Sales pipeline                                  |
+| Phase 8  | 10    | REST interface and monitoring                                              |
+| Phase 9  | 11    | Second and third pipelines: Inventory and Customer                         |
+| Phase 10 | 12    | Hardening, V2 preparation, Docker, documentation                           |
 
 ---
 

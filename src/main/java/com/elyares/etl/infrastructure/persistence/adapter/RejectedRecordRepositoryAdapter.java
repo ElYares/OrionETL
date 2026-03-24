@@ -77,6 +77,7 @@ public class RejectedRecordRepositoryAdapter implements RejectedRecordRepository
             .executionId(execution.getId())
             .pipelineId(execution.getPipelineId())
             .stepName(rejectedRecord.getStepName())
+            .sourceRowNumber(rejectedRecord.getOriginalRecord().getRowNumber())
             .rawData(jsonMapper.toJson(rejectedRecord.getOriginalRecord().getData()))
             .rejectionReason(rejectedRecord.getRejectionReason())
             .validationErrors(jsonMapper.toJson(rejectedRecord.getValidationErrors()))
@@ -104,17 +105,18 @@ public class RejectedRecordRepositoryAdapter implements RejectedRecordRepository
             .toList();
 
         RawRecord rawRecord = new RawRecord(
-            0L,
+            entity.getSourceRowNumber(),
             rawData,
             "persisted-rejected-record",
-            Instant.now()
+            entity.getRejectedAt()
         );
 
         return new RejectedRecord(
             rawRecord,
             entity.getStepName(),
             entity.getRejectionReason(),
-            validationErrors
+            validationErrors,
+            entity.getRejectedAt()
         );
     }
 }

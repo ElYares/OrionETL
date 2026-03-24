@@ -4,15 +4,18 @@ import com.elyares.etl.domain.enums.*;
 import com.elyares.etl.domain.model.source.RawRecord;
 import com.elyares.etl.domain.model.source.SourceConfig;
 import com.elyares.etl.domain.model.target.TargetConfig;
+import com.elyares.etl.domain.model.transformation.TransformationConfig;
 import com.elyares.etl.domain.model.validation.ValidationConfig;
 import com.elyares.etl.domain.model.pipeline.*;
 import com.elyares.etl.domain.valueobject.*;
 
 import java.time.Instant;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 
 /**
  * Fábrica de datos de prueba reutilizables para los tests del sistema ETL.
@@ -94,7 +97,7 @@ public final class SampleDataFactory {
      *         lote de 1000 registros
      */
     public static TargetConfig aTargetConfig() {
-        return new TargetConfig(TargetType.DATABASE, "public", "sales_staging",
+        return new TargetConfig(TargetType.DATABASE, "public", "sales_transactions_staging",
                                 "sales_transactions", LoadStrategy.UPSERT,
                                 List.of("transaction_id"), 1000);
     }
@@ -112,8 +115,39 @@ public final class SampleDataFactory {
             List.of("transaction_id", "customer_id", "amount"),
             Map.of("amount", "DECIMAL", "sale_date", "DATE"),
             List.of("transaction_id"),
+            Map.of("customer_id", "^CUST-\\d{3}$"),
+            "yyyy-MM-dd",
+            true,
+            List.of("amount"),
+            false,
+            Map.of("discount_rate", new ValidationConfig.RangeRule(BigDecimal.ZERO, BigDecimal.valueOf(100), true)),
+            List.of(),
+            Map.of("customer_id", Set.of("CUST-001", "CUST-002", "CUST-003")),
+            Map.of("customer_id", Set.of("CUST-001", "CUST-002")),
+            false,
             ErrorThreshold.of(5.0),
             true
+        );
+    }
+
+    public static TransformationConfig aTransformationConfig() {
+        return new TransformationConfig(
+            List.of("sale_date"),
+            "yyyy-MM-dd HH:mm:ss",
+            "UTC",
+            "currency",
+            "USD",
+            "USD",
+            Map.of("USD", BigDecimal.ONE, "EUR", new BigDecimal("1.10")),
+            List.of("amount"),
+            List.of("", "NULL", "N/A", "-"),
+            Map.of("status", Map.of("ACTV", "ACTIVE")),
+            Map.of("status", "REJECT"),
+            Map.of(),
+            Map.of("tax_amount", "amount * 0.16"),
+            2,
+            RoundingMode.HALF_UP,
+            List.of("amount", "tax_amount")
         );
     }
 
@@ -146,6 +180,7 @@ public final class SampleDataFactory {
             PipelineStatus.ACTIVE,
             aCsvSourceConfig(),
             aTargetConfig(),
+            aTransformationConfig(),
             aValidationConfig(),
             ScheduleConfig.of("0 2 * * *", "UTC"),
             aRetryPolicy(),
