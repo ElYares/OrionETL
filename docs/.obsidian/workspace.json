@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "runbooks/local-setup.md",
+                "file": "flujo.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "local-setup"
+              "title": "flujo"
             }
           }
         ],
@@ -93,7 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 301.5
   },
   "right": {
     "id": "4940961232c6b933",
@@ -109,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "runbooks/local-setup.md",
+                "file": "flujo.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de local-setup"
+              "title": "Enlaces entrantes de flujo"
             }
           },
           {
@@ -128,12 +128,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "runbooks/local-setup.md",
+                "file": "flujo.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de local-setup"
+              "title": "Enlaces salientes de flujo"
             }
           },
           {
@@ -171,13 +171,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "runbooks/local-setup.md",
+                "file": "flujo.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de local-setup"
+              "title": "Esquema de flujo"
             }
           }
         ]
@@ -200,6 +200,9 @@
   },
   "active": "e9e966c73e6fa115",
   "lastOpenFiles": [
+    "runbooks/local-setup.md",
+    "flujo.md",
+    "runbooks/agent-handoff-context.md",
     "infrastructure/database-schema.md",
     "decisions/ADR-003-staging-strategy.md",
     "decisions/ADR-002-spring-batch.md",
@@ -220,11 +223,8 @@
     "README.md",
     "runbooks/understanding-orionetl.md",
     "runbooks/running-a-pipeline.md",
-    "runbooks/local-setup.md",
     "pipelines/customer-pipeline.md",
     "pipelines/inventory-pipeline.md",
-    "pipelines/sales-pipeline.md",
-    "infrastructure/validators.md",
-    "infrastructure/transformers.md"
+    "pipelines/sales-pipeline.md"
   ]
 }

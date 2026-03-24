@@ -282,6 +282,40 @@ Resultado esperado:
 - `failures=0`
 - `errors=0`
 
+## 33) Generar esqueleto de un pipeline CSV nuevo
+
+Sirve para crear rápidamente la estructura base de un pipeline CSV nuevo sin empezar desde cero.
+
+Comando:
+
+```bash
+chmod +x scripts/new-csv-pipeline.sh
+scripts/new-csv-pipeline.sh <slug> <pipeline-name> <table-prefix> <business-key>
+```
+
+Ejemplo:
+
+```bash
+scripts/new-csv-pipeline.sh payments payments-sync etl_payments payment_key
+```
+
+Qué genera:
+
+- migración Flyway
+- YAML del pipeline
+- clase `*PipelineConfig`
+- transformer específico
+- unit test
+- E2E
+
+Después de generarlo, todavía debes:
+
+- ajustar columnas reales
+- ajustar validación
+- completar la lógica del transformer
+- revisar mounts/variables del CSV
+- correr tests
+
 ## 13) Unit test de `SalesTransformer`
 
 Sirve para validar únicamente la lógica específica del pipeline de Sales:

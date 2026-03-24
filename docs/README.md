@@ -83,8 +83,10 @@ When a pipeline is triggered (via REST API, CLI, or scheduler), OrionETL execute
 ### Runbooks
 - [Running a Pipeline](./runbooks/running-a-pipeline.md) — How to trigger, monitor, and debug executions
 - [Entender OrionETL](./runbooks/understanding-orionetl.md) — Explicación simple del flujo completo, estado actual, entradas y salidas
+- [Agent Handoff Context](./runbooks/agent-handoff-context.md) — Contexto concentrado para otro agente: arquitectura, uso, extensiones y puntos de edición
 - [Using Phase 4 Extractors](./runbooks/using-phase4-extractors.md) — Cómo trabajar, validar y visualizar CSV/API extractors
 - [Local Setup](./runbooks/local-setup.md) — Developer environment setup guide
+- [Flujo](./flujo.md) — Guía paso a paso para crear nuevos pipelines CSV usando `item-sync` como ejemplo
 
 ### Planning
 - [Action Plan](./action-plan.md) — Phased implementation roadmap (10 phases, 12 weeks)
