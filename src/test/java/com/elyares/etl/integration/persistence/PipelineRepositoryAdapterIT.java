@@ -11,6 +11,7 @@ import com.elyares.etl.domain.model.pipeline.RetryPolicy;
 import com.elyares.etl.domain.model.pipeline.ScheduleConfig;
 import com.elyares.etl.domain.model.source.SourceConfig;
 import com.elyares.etl.domain.model.target.TargetConfig;
+import com.elyares.etl.domain.model.transformation.TransformationConfig;
 import com.elyares.etl.domain.model.validation.ValidationConfig;
 import com.elyares.etl.domain.valueobject.ErrorThreshold;
 import com.elyares.etl.domain.valueobject.PipelineId;
@@ -144,6 +145,7 @@ class PipelineRepositoryAdapterIT extends PostgresIntegrationTestBase {
             status,
             sourceConfig,
             targetConfig,
+            TransformationConfig.defaultConfig(),
             validationConfig,
             scheduleConfig,
             retryPolicy,

@@ -38,6 +38,13 @@ public class RetryExecutionUseCase {
     }
 
     public PipelineExecutionDto execute(String failedExecutionId, String triggeredBy) {
+        PipelineExecution retryExecution = createRetryExecution(failedExecutionId, triggeredBy);
+        Pipeline pipeline = pipelineRepository.findById(retryExecution.getPipelineId())
+            .orElseThrow(() -> new EtlException("ETL_PIPELINE_NOT_FOUND", "Pipeline not found for retry execution"));
+        return executionMapper.toDto(retryExecution, pipeline.getName());
+    }
+
+    public PipelineExecution createRetryExecution(String failedExecutionId, String triggeredBy) {
         PipelineExecution failedExecution = executionRepository.findByExecutionId(ExecutionId.of(failedExecutionId))
             .orElseThrow(() -> new EtlException("ETL_EXEC_NOT_FOUND", "Execution not found: " + failedExecutionId));
 
@@ -49,6 +56,7 @@ public class RetryExecutionUseCase {
             resolveLastErrorType(failedExecution),
             pipeline.getRetryPolicy()
         );
+        waitBeforeRetry(pipeline);
 
         PipelineExecution retryExecution = executionLifecycleService.createExecution(
             pipeline.getId(),
@@ -56,10 +64,23 @@ public class RetryExecutionUseCase {
             triggeredBy
         );
         retryExecution.setParentExecutionId(failedExecution.getId());
-        retryExecution.incrementRetryCount();
-        retryExecution = executionRepository.save(retryExecution);
+        for (int i = 0; i <= failedExecution.getRetryCount(); i++) {
+            retryExecution.incrementRetryCount();
+        }
+        return executionRepository.save(retryExecution);
+    }
 
-        return executionMapper.toDto(retryExecution, pipeline.getName());
+    private void waitBeforeRetry(Pipeline pipeline) {
+        long retryDelayMs = pipeline.getRetryPolicy().getRetryDelayMs();
+        if (retryDelayMs <= 0) {
+            return;
+        }
+        try {
+            Thread.sleep(retryDelayMs);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new EtlException("ETL_RETRY_INTERRUPTED", "Retry delay interrupted");
+        }
     }
 
     private ErrorType resolveLastErrorType(PipelineExecution execution) {

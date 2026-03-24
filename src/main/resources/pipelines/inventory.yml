@@ -1,0 +1,103 @@
+pipeline:
+  id: "6a81ef7f-6c11-4b22-b9a8-7b8fa4d2a101"
+  name: "inventory-sync"
+  version: "1.0.0"
+  description: "Inventory sync from WMS Excel export"
+  status: ACTIVE
+
+  source-config:
+    type: EXCEL
+    location: "${ORION_INVENTORY_SOURCE_PATH:/tmp/orionetl-inventory.xlsx}"
+    has-header: true
+    connection-properties:
+      sheetName: "Inventory"
+      dataStartRow: "2"
+
+  target-config:
+    type: DATABASE
+    schema: "public"
+    staging-table: "inventory_levels_staging"
+    final-table: "inventory_levels"
+    load-strategy: UPSERT
+    business-key:
+      - sku
+      - warehouse_id
+    chunk-size: 500
+    fail-fast-on-chunk-error: true
+    rollback-strategy: DELETE_BY_EXECUTION
+    closed-record-guard-enabled: false
+
+  validation-config:
+    mandatory-columns:
+      - sku
+      - warehouse_id
+      - quantity_on_hand
+      - last_updated
+    column-types:
+      quantity_on_hand: INTEGER
+      quantity_reserved: INTEGER
+      unit_cost: DECIMAL
+    amount-fields:
+      - unit_cost
+    allow-negative-amounts: false
+    active-catalog-values:
+      warehouse_id:
+        - W-001
+        - W-002
+        - W-003
+    catalog-values:
+      sku:
+        - SKU-1
+        - SKU-2
+        - SKU-3
+        - ABC-123
+    unique-key-columns:
+      - sku
+      - warehouse_id
+    reject-all-duplicates: false
+    error-threshold-percent: 2.0
+    abort-on-threshold-breach: true
+
+  transformation-config:
+    source-timezone: "UTC"
+    date-fields:
+      - last_updated
+    currency-field: "cost_currency"
+    base-currency: "USD"
+    default-currency: "USD"
+    monetary-fields:
+      - unit_cost
+    currency-rates:
+      USD: 1.00
+      COP: 0.00025
+    null-values:
+      - ""
+      - "NULL"
+      - "N/A"
+      - "-"
+    rounding-scale: 2
+    rounding-mode: HALF_UP
+    rounding-fields:
+      - unit_cost
+
+  retry-policy:
+    max-retries: 2
+    retry-delay-ms: 600000
+    retry-on-errors:
+      - TECHNICAL
+      - EXTERNAL_INTEGRATION
+
+  schedule-config:
+    cron: "0 0 0/6 * * *"
+    timezone: "UTC"
+    allowed-windows:
+      - start: "00:00"
+        end: "00:30"
+        days:
+          - MONDAY
+          - TUESDAY
+          - WEDNESDAY
+          - THURSDAY
+          - FRIDAY
+          - SATURDAY
+          - SUNDAY

@@ -15,4 +15,8 @@ public interface JpaEtlPipelineExecutionRepository extends JpaRepository<EtlPipe
     List<EtlPipelineExecutionEntity> findByPipelineIdAndStatusIn(UUID pipelineId, List<String> statuses);
 
     List<EtlPipelineExecutionEntity> findByPipelineIdOrderByCreatedAtDesc(UUID pipelineId, Pageable pageable);
+
+    Optional<EtlPipelineExecutionEntity> findFirstByPipelineIdAndStatusInOrderByFinishedAtDesc(UUID pipelineId, List<String> statuses);
+
+    long countByStatusIn(List<String> statuses);
 }

@@ -4,7 +4,7 @@ import com.elyares.etl.domain.contract.DataExtractor;
 import com.elyares.etl.domain.model.execution.PipelineExecution;
 import com.elyares.etl.domain.model.pipeline.Pipeline;
 import com.elyares.etl.domain.model.source.ExtractionResult;
-import com.elyares.etl.shared.exception.ExtractionException;
+import com.elyares.etl.infrastructure.extractor.ExtractorRegistry;
 
 import java.util.List;
 
@@ -13,19 +13,18 @@ import java.util.List;
  */
 public class ExtractDataUseCase {
 
-    private final List<DataExtractor> extractors;
+    private final ExtractorRegistry extractorRegistry;
+
+    public ExtractDataUseCase(ExtractorRegistry extractorRegistry) {
+        this.extractorRegistry = extractorRegistry;
+    }
 
     public ExtractDataUseCase(List<DataExtractor> extractors) {
-        this.extractors = extractors;
+        this.extractorRegistry = new ExtractorRegistry(extractors);
     }
 
     public ExtractionResult execute(Pipeline pipeline, PipelineExecution execution) {
-        return extractors.stream()
-            .filter(extractor -> extractor.supports(pipeline.getSourceConfig().getType()))
-            .findFirst()
-            .map(extractor -> extractor.extract(pipeline.getSourceConfig(), execution))
-            .orElseThrow(() -> new ExtractionException(
-                "No extractor registered for source type: " + pipeline.getSourceConfig().getType()
-            ));
+        DataExtractor extractor = extractorRegistry.resolve(pipeline.getSourceConfig().getType());
+        return extractor.extract(pipeline.getSourceConfig(), execution);
     }
 }

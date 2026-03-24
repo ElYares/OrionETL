@@ -18,6 +18,7 @@ import com.elyares.etl.domain.model.pipeline.ScheduleConfig;
 import com.elyares.etl.domain.model.source.RawRecord;
 import com.elyares.etl.domain.model.source.SourceConfig;
 import com.elyares.etl.domain.model.target.TargetConfig;
+import com.elyares.etl.domain.model.transformation.TransformationConfig;
 import com.elyares.etl.domain.model.validation.RejectedRecord;
 import com.elyares.etl.domain.model.validation.ValidationConfig;
 import com.elyares.etl.domain.model.validation.ValidationError;
@@ -186,6 +187,7 @@ class AuditAndRejectedRepositoryAdapterIT extends PostgresIntegrationTestBase {
             PipelineStatus.ACTIVE,
             new SourceConfig(SourceType.CSV, "/tmp/source.csv", "UTF-8", ',', true, Map.of()),
             new TargetConfig(TargetType.DATABASE, "public", "staging_audit", "final_audit", LoadStrategy.UPSERT, List.of("id"), 100),
+            TransformationConfig.defaultConfig(),
             new ValidationConfig(List.of("id"), Map.of("id", "STRING"), List.of("id"), ErrorThreshold.of(5.0), true),
             ScheduleConfig.disabled(),
             RetryPolicy.of(1, 500L),

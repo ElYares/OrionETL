@@ -1,0 +1,134 @@
+pipeline:
+  id: "9b4d1aa8-e5f2-4e38-b3cc-aeb89d3ab001"
+  name: "sales-daily"
+  version: "1.0.0"
+  description: "Daily sales transaction ingestion from CSV or REST API"
+  status: ACTIVE
+
+  source-config:
+    type: CSV
+    location: "${ORION_SALES_SOURCE_PATH:src/test/resources/fixtures/pipelines/sales_e2e.csv}"
+    delimiter: ","
+    encoding: "UTF-8"
+    has-header: true
+    connection-properties:
+      nullValues: ",NULL,N/A,-"
+
+  target-config:
+    type: DATABASE
+    schema: "public"
+    staging-table: "sales_transactions_staging"
+    final-table: "sales_transactions"
+    load-strategy: UPSERT
+    business-key:
+      - transaction_id
+    chunk-size: 500
+    fail-fast-on-chunk-error: true
+    rollback-strategy: DELETE_BY_EXECUTION
+    closed-record-guard-enabled: true
+    closed-flag-column: "status"
+    closed-flag-value: "CLOSED"
+
+  validation-config:
+    mandatory-columns:
+      - transaction_id
+      - customer_id
+      - product_id
+      - amount
+      - currency
+      - sale_date
+      - salesperson_id
+      - channel
+    column-types:
+      amount: DECIMAL
+      sale_date: DATE
+      product_quantity: INTEGER
+      discount_rate: DECIMAL
+    amount-fields:
+      - amount
+    allow-negative-amounts: false
+    range-rules:
+      discount_rate:
+        min: 0
+        max: 100
+        inclusive: true
+    future-date-fields:
+      - sale_date
+    future-date-rules:
+      sale_date:
+        allowed-days-in-future: 2
+        condition-field: channel
+        allowed-values:
+          - PARTNER
+    catalog-values:
+      customer_id:
+        - C-100
+        - C-101
+        - C-102
+        - C-103
+      product_id:
+        - P-100
+        - P-101
+        - P-102
+      channel:
+        - ONLINE
+        - IN_STORE
+        - PHONE
+        - PARTNER
+        - MARKETPLACE
+    active-catalog-values:
+      salesperson_id:
+        - S-001
+        - S-002
+        - S-003
+    unique-key-columns:
+      - transaction_id
+    reject-all-duplicates: false
+    error-threshold-percent: 5.0
+    abort-on-threshold-breach: true
+
+  transformation-config:
+    source-timezone: "UTC"
+    date-format: "yyyy-MM-dd"
+    currency-field: "currency"
+    base-currency: "USD"
+    default-currency: "USD"
+    currency-rates:
+      USD: 1.00
+      EUR: 1.10
+      COP: 0.00025
+    monetary-fields:
+      - amount
+    null-values:
+      - ""
+      - "NULL"
+      - "N/A"
+      - "-"
+    date-fields:
+      - sale_date
+    rounding-scale: 2
+    rounding-mode: HALF_UP
+    rounding-fields:
+      - amount
+
+  retry-policy:
+    max-retries: 3
+    retry-delay-ms: 300000
+    retry-on-errors:
+      - EXTERNAL_INTEGRATION
+      - TECHNICAL
+
+  schedule-config:
+    cron: "0 0 2 * * *"
+    timezone: "UTC"
+    allowed-windows:
+      - start: "01:30"
+        end: "04:00"
+        days:
+          - MONDAY
+          - TUESDAY
+          - WEDNESDAY
+          - THURSDAY
+          - FRIDAY
+          - SATURDAY
+          - SUNDAY

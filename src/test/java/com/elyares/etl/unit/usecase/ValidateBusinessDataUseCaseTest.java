@@ -1,9 +1,11 @@
 package com.elyares.etl.unit.usecase;
 
 import com.elyares.etl.application.usecase.validation.ValidateBusinessDataUseCase;
+import com.elyares.etl.application.usecase.validation.ValidationChainExecutor;
 import com.elyares.etl.domain.contract.DataValidator;
 import com.elyares.etl.domain.model.validation.ValidationResult;
 import com.elyares.etl.fixtures.SampleDataFactory;
+import com.elyares.etl.infrastructure.validator.QualityValidator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -22,8 +24,11 @@ class ValidateBusinessDataUseCaseTest {
         DataValidator validator = mock(DataValidator.class);
         when(validator.validate(records, config)).thenReturn(expected);
 
-        ValidateBusinessDataUseCase useCase = new ValidateBusinessDataUseCase(validator);
+        ValidateBusinessDataUseCase useCase = new ValidateBusinessDataUseCase(
+            new ValidationChainExecutor(new QualityValidator()),
+            validator
+        );
 
-        assertThat(useCase.execute(records, config)).isEqualTo(expected);
+        assertThat(useCase.execute(records, config).getErrors()).isEqualTo(expected.getErrors());
     }
 }

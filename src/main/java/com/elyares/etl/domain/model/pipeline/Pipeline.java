@@ -3,6 +3,7 @@ package com.elyares.etl.domain.model.pipeline;
 import com.elyares.etl.domain.enums.PipelineStatus;
 import com.elyares.etl.domain.model.source.SourceConfig;
 import com.elyares.etl.domain.model.target.TargetConfig;
+import com.elyares.etl.domain.model.transformation.TransformationConfig;
 import com.elyares.etl.domain.model.validation.ValidationConfig;
 import com.elyares.etl.domain.valueobject.PipelineId;
 
@@ -30,6 +31,7 @@ public final class Pipeline {
     private final PipelineStatus status;
     private final SourceConfig sourceConfig;
     private final TargetConfig targetConfig;
+    private final TransformationConfig transformationConfig;
     private final ValidationConfig validationConfig;
     private final ScheduleConfig scheduleConfig;
     private final RetryPolicy retryPolicy;
@@ -51,6 +53,7 @@ public final class Pipeline {
      * @param status           estado actual del pipeline; si es {@code null} se usa {@code ACTIVE}
      * @param sourceConfig     configuración de la fuente de datos; no puede ser {@code null}
      * @param targetConfig     configuración del destino de datos; no puede ser {@code null}
+     * @param transformationConfig configuración de transformación; si es {@code null} se usa configuración por defecto
      * @param validationConfig configuración de reglas de validación; no puede ser {@code null}
      * @param scheduleConfig   configuración de planificación horaria; si es {@code null} se deshabilita
      * @param retryPolicy      política de reintentos ante fallos; si es {@code null} no se reintenta
@@ -62,7 +65,7 @@ public final class Pipeline {
      */
     public Pipeline(PipelineId id, String name, String version, String description,
                     PipelineStatus status, SourceConfig sourceConfig, TargetConfig targetConfig,
-                    ValidationConfig validationConfig, ScheduleConfig scheduleConfig,
+                    TransformationConfig transformationConfig, ValidationConfig validationConfig, ScheduleConfig scheduleConfig,
                     RetryPolicy retryPolicy, Instant createdAt, Instant updatedAt) {
         this.id = Objects.requireNonNull(id, "PipelineId must not be null");
         this.name = Objects.requireNonNull(name, "Pipeline name must not be null");
@@ -71,6 +74,9 @@ public final class Pipeline {
         this.status = status != null ? status : PipelineStatus.ACTIVE;
         this.sourceConfig = Objects.requireNonNull(sourceConfig);
         this.targetConfig = Objects.requireNonNull(targetConfig);
+        this.transformationConfig = transformationConfig != null
+            ? transformationConfig
+            : TransformationConfig.defaultConfig();
         this.validationConfig = Objects.requireNonNull(validationConfig);
         this.scheduleConfig = scheduleConfig != null ? scheduleConfig : ScheduleConfig.disabled();
         this.retryPolicy = retryPolicy != null ? retryPolicy : RetryPolicy.noRetry();
@@ -136,6 +142,13 @@ public final class Pipeline {
      * @return configuración del destino; nunca {@code null}
      */
     public TargetConfig getTargetConfig() { return targetConfig; }
+
+    /**
+     * Devuelve la configuración de transformación aplicada al pipeline.
+     *
+     * @return configuración de transformación; nunca {@code null}
+     */
+    public TransformationConfig getTransformationConfig() { return transformationConfig; }
 
     /**
      * Devuelve la configuración de validación aplicada al pipeline.

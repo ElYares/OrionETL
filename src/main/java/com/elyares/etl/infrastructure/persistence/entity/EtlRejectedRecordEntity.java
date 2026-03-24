@@ -34,6 +34,9 @@ public class EtlRejectedRecordEntity {
     @Column(name = "step_name", nullable = false)
     private String stepName;
 
+    @Column(name = "source_row_number", nullable = false)
+    private long sourceRowNumber;
+
     @Column(name = "raw_data", nullable = false, columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private String rawData;

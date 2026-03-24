@@ -25,8 +25,20 @@ public class GetPipelineUseCase {
             .orElseThrow(() -> new PipelineNotFoundException(pipelineId));
     }
 
+    public Pipeline getDomainByReference(String pipelineRef) {
+        try {
+            return getDomainById(pipelineRef);
+        } catch (IllegalArgumentException | PipelineNotFoundException ex) {
+            return getDomainByName(pipelineRef);
+        }
+    }
+
     public PipelineDto getById(String pipelineId) {
         return pipelineMapper.toDto(getDomainById(pipelineId));
+    }
+
+    public PipelineDto getByReference(String pipelineRef) {
+        return pipelineMapper.toDto(getDomainByReference(pipelineRef));
     }
 
     public Pipeline getDomainByName(String pipelineName) {

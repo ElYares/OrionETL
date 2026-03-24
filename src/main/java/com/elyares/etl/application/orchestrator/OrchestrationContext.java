@@ -20,6 +20,7 @@ final class OrchestrationContext {
     private long totalTransformed;
     private long totalRejected;
     private long totalLoaded;
+    private boolean rejectedRecordsPersisted;
 
     List<RawRecord> getRawRecords() {
         return rawRecords;
@@ -65,11 +66,27 @@ final class OrchestrationContext {
         this.totalRejected += rejectedDelta;
     }
 
+    void addRejectedRecords(List<RejectedRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+        this.rejectedRecords.addAll(records);
+        this.totalRejected += records.size();
+    }
+
     long getTotalLoaded() {
         return totalLoaded;
     }
 
     void setTotalLoaded(long totalLoaded) {
         this.totalLoaded = totalLoaded;
+    }
+
+    boolean isRejectedRecordsPersisted() {
+        return rejectedRecordsPersisted;
+    }
+
+    void markRejectedRecordsPersisted() {
+        this.rejectedRecordsPersisted = true;
     }
 }

@@ -2,9 +2,11 @@ package com.elyares.etl.domain.model.validation;
 
 import com.elyares.etl.domain.valueobject.ErrorThreshold;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Configuración inmutable que define las reglas de validación aplicadas durante el proceso ETL.
@@ -20,86 +22,150 @@ import java.util.Objects;
  */
 public final class ValidationConfig {
 
-    /** Lista inmutable de nombres de columnas que deben estar presentes y no nulas en cada registro. */
     private final List<String> mandatoryColumns;
-
-    /**
-     * Mapa inmutable de tipo esperado por columna, donde la clave es el nombre de columna
-     * y el valor es el nombre del tipo de dato (p. ej. {@code "STRING"}, {@code "INTEGER"}).
-     */
     private final Map<String, String> columnTypes;
-
-    /** Lista inmutable de columnas que en conjunto conforman una clave única de negocio. */
     private final List<String> uniqueKeyColumns;
-
-    /** Umbral de error que define el porcentaje máximo de registros rechazados aceptable. */
+    private final Map<String, String> columnPatterns;
+    private final String dateFormat;
+    private final boolean acceptIso8601Fallback;
+    private final List<String> amountFields;
+    private final boolean allowNegativeAmounts;
+    private final Map<String, RangeRule> rangeRules;
+    private final List<String> futureDateFields;
+    private final Map<String, FutureDateRule> futureDateRules;
+    private final Map<String, Set<String>> catalogValues;
+    private final Map<String, Set<String>> activeCatalogValues;
+    private final boolean rejectAllDuplicates;
     private final ErrorThreshold errorThreshold;
-
-    /**
-     * Indica si el proceso ETL debe abortarse cuando la tasa de error supera
-     * el umbral configurado en {@code errorThreshold}.
-     */
     private final boolean abortOnThresholdBreach;
 
-    /**
-     * Construye una nueva instancia de {@code ValidationConfig} con las reglas especificadas.
-     *
-     * <p>Valores por defecto aplicados cuando el parámetro es {@code null}:</p>
-     * <ul>
-     *   <li>{@code mandatoryColumns}: lista vacía inmutable</li>
-     *   <li>{@code columnTypes}: mapa vacío inmutable</li>
-     *   <li>{@code uniqueKeyColumns}: lista vacía inmutable</li>
-     *   <li>{@code errorThreshold}: resultado de {@link ErrorThreshold#defaultThreshold()}</li>
-     * </ul>
-     *
-     * @param mandatoryColumns       columnas obligatorias; puede ser {@code null}
-     * @param columnTypes            mapa de tipos esperados por columna; puede ser {@code null}
-     * @param uniqueKeyColumns       columnas de clave única; puede ser {@code null}
-     * @param errorThreshold         umbral de tasa de error; si es {@code null} se usa el umbral por defecto
-     * @param abortOnThresholdBreach {@code true} para abortar el pipeline al superar el umbral de error
-     */
     public ValidationConfig(List<String> mandatoryColumns, Map<String, String> columnTypes,
                             List<String> uniqueKeyColumns, ErrorThreshold errorThreshold,
+                            boolean abortOnThresholdBreach) {
+        this(mandatoryColumns, columnTypes, uniqueKeyColumns, Map.of(), null, true, List.of(),
+            false, Map.of(), List.of(), Map.of(), Map.of(), Map.of(), false, errorThreshold,
+            abortOnThresholdBreach);
+    }
+
+    public ValidationConfig(List<String> mandatoryColumns,
+                            Map<String, String> columnTypes,
+                            List<String> uniqueKeyColumns,
+                            Map<String, String> columnPatterns,
+                            String dateFormat,
+                            boolean acceptIso8601Fallback,
+                            List<String> amountFields,
+                            boolean allowNegativeAmounts,
+                            Map<String, RangeRule> rangeRules,
+                            List<String> futureDateFields,
+                            Map<String, Set<String>> catalogValues,
+                            Map<String, Set<String>> activeCatalogValues,
+                            boolean rejectAllDuplicates,
+                            ErrorThreshold errorThreshold,
+                            boolean abortOnThresholdBreach) {
+        this(mandatoryColumns, columnTypes, uniqueKeyColumns, columnPatterns, dateFormat,
+            acceptIso8601Fallback, amountFields, allowNegativeAmounts, rangeRules,
+            futureDateFields, Map.of(), catalogValues, activeCatalogValues, rejectAllDuplicates,
+            errorThreshold, abortOnThresholdBreach);
+    }
+
+    public ValidationConfig(List<String> mandatoryColumns,
+                            Map<String, String> columnTypes,
+                            List<String> uniqueKeyColumns,
+                            Map<String, String> columnPatterns,
+                            String dateFormat,
+                            boolean acceptIso8601Fallback,
+                            List<String> amountFields,
+                            boolean allowNegativeAmounts,
+                            Map<String, RangeRule> rangeRules,
+                            List<String> futureDateFields,
+                            Map<String, FutureDateRule> futureDateRules,
+                            Map<String, Set<String>> catalogValues,
+                            Map<String, Set<String>> activeCatalogValues,
+                            boolean rejectAllDuplicates,
+                            ErrorThreshold errorThreshold,
                             boolean abortOnThresholdBreach) {
         this.mandatoryColumns = mandatoryColumns != null ? List.copyOf(mandatoryColumns) : List.of();
         this.columnTypes = columnTypes != null ? Map.copyOf(columnTypes) : Map.of();
         this.uniqueKeyColumns = uniqueKeyColumns != null ? List.copyOf(uniqueKeyColumns) : List.of();
+        this.columnPatterns = columnPatterns != null ? Map.copyOf(columnPatterns) : Map.of();
+        this.dateFormat = dateFormat;
+        this.acceptIso8601Fallback = acceptIso8601Fallback;
+        this.amountFields = amountFields != null ? List.copyOf(amountFields) : List.of();
+        this.allowNegativeAmounts = allowNegativeAmounts;
+        this.rangeRules = rangeRules != null ? Map.copyOf(rangeRules) : Map.of();
+        this.futureDateFields = futureDateFields != null ? List.copyOf(futureDateFields) : List.of();
+        this.futureDateRules = futureDateRules != null ? Map.copyOf(futureDateRules) : Map.of();
+        this.catalogValues = copyNestedSets(catalogValues);
+        this.activeCatalogValues = copyNestedSets(activeCatalogValues);
+        this.rejectAllDuplicates = rejectAllDuplicates;
         this.errorThreshold = Objects.requireNonNullElse(errorThreshold, ErrorThreshold.defaultThreshold());
         this.abortOnThresholdBreach = abortOnThresholdBreach;
     }
 
-    /**
-     * Devuelve la lista inmutable de columnas obligatorias que deben estar presentes en cada registro.
-     *
-     * @return lista de nombres de columnas obligatorias; nunca {@code null}, puede estar vacía
-     */
     public List<String> getMandatoryColumns() { return mandatoryColumns; }
 
-    /**
-     * Devuelve el mapa inmutable de tipos de datos esperados por columna.
-     *
-     * @return mapa de {@code nombre_columna -> tipo_esperado}; nunca {@code null}, puede estar vacío
-     */
     public Map<String, String> getColumnTypes() { return columnTypes; }
 
-    /**
-     * Devuelve la lista inmutable de columnas que conforman la clave única de negocio.
-     *
-     * @return lista de nombres de columnas de clave única; nunca {@code null}, puede estar vacía
-     */
     public List<String> getUniqueKeyColumns() { return uniqueKeyColumns; }
 
-    /**
-     * Devuelve el umbral de tasa de error máximo aceptable para el proceso de validación.
-     *
-     * @return instancia de {@link ErrorThreshold}; nunca {@code null}
-     */
+    public Map<String, String> getColumnPatterns() { return columnPatterns; }
+
+    public String getDateFormat() { return dateFormat; }
+
+    public boolean isAcceptIso8601Fallback() { return acceptIso8601Fallback; }
+
+    public List<String> getAmountFields() { return amountFields; }
+
+    public boolean isAllowNegativeAmounts() { return allowNegativeAmounts; }
+
+    public Map<String, RangeRule> getRangeRules() { return rangeRules; }
+
+    public List<String> getFutureDateFields() { return futureDateFields; }
+
+    public Map<String, FutureDateRule> getFutureDateRules() { return futureDateRules; }
+
+    public Map<String, Set<String>> getCatalogValues() { return catalogValues; }
+
+    public Map<String, Set<String>> getActiveCatalogValues() { return activeCatalogValues; }
+
+    public boolean isRejectAllDuplicates() { return rejectAllDuplicates; }
+
     public ErrorThreshold getErrorThreshold() { return errorThreshold; }
 
-    /**
-     * Indica si el proceso ETL debe abortarse cuando la tasa de error supera el umbral configurado.
-     *
-     * @return {@code true} si se debe abortar al superar el umbral; {@code false} para continuar
-     */
     public boolean isAbortOnThresholdBreach() { return abortOnThresholdBreach; }
+
+    private Map<String, Set<String>> copyNestedSets(Map<String, Set<String>> source) {
+        if (source == null || source.isEmpty()) {
+            return Map.of();
+        }
+        return source.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+            Map.Entry::getKey,
+            entry -> Set.copyOf(entry.getValue())
+        ));
+    }
+
+    public record RangeRule(BigDecimal min, BigDecimal max, boolean inclusive) {
+        public RangeRule {
+            Objects.requireNonNull(min, "min must not be null");
+            Objects.requireNonNull(max, "max must not be null");
+        }
+    }
+
+    public record FutureDateRule(int allowedDaysInFuture,
+                                 String conditionField,
+                                 Set<String> allowedValues) {
+        public FutureDateRule {
+            if (allowedDaysInFuture < 0) {
+                throw new IllegalArgumentException("allowedDaysInFuture must be >= 0");
+            }
+            allowedValues = allowedValues != null ? Set.copyOf(allowedValues) : Set.of();
+        }
+
+        public boolean appliesTo(Object candidateValue) {
+            if (allowedValues.isEmpty()) {
+                return true;
+            }
+            return candidateValue != null && allowedValues.contains(String.valueOf(candidateValue));
+        }
+    }
 }

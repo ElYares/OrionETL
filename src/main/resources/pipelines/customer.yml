@@ -1,0 +1,113 @@
+pipeline:
+  id: "7dd99f8b-19de-4730-b012-1d75c1ae6e01"
+  name: "customer-sync"
+  version: "1.0.0"
+  description: "Daily customer sync from CRM API"
+  status: ACTIVE
+
+  source-config:
+    type: API
+    location: "${ORION_CUSTOMER_API_URL:http://localhost:18081/customers}"
+    has-header: true
+    connection-properties:
+      method: "GET"
+      responseArrayPath: "customers"
+      paginationType: "CURSOR"
+      cursorField: "meta.next_cursor"
+      cursorParam: "cursor"
+      pageSize: "200"
+      timeoutMs: "30000"
+      maxRetries: "2"
+      authType: "BEARER"
+      authToken: "test-token"
+
+  target-config:
+    type: DATABASE
+    schema: "public"
+    staging-table: "customers_staging"
+    final-table: "customers"
+    load-strategy: UPSERT
+    business-key:
+      - document_type
+      - document_number
+    chunk-size: 200
+    fail-fast-on-chunk-error: true
+    rollback-strategy: DELETE_BY_EXECUTION
+    closed-record-guard-enabled: true
+    closed-flag-column: "status"
+    closed-flag-value: "CLOSED"
+
+  validation-config:
+    mandatory-columns:
+      - customer_id
+      - document_type
+      - document_number
+      - first_name
+      - last_name
+      - email
+      - country_code
+      - registration_date
+      - status
+    column-types:
+      registration_date: DATE
+      birth_date: DATE
+    column-patterns:
+      email: "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    future-date-fields:
+      - registration_date
+    catalog-values:
+      document_type:
+        - CC
+        - CE
+        - NIT
+        - PASS
+        - PPN
+      country_code:
+        - CO
+        - US
+        - MX
+      status:
+        - ACTIVE
+        - INACTIVE
+        - SUSPENDED
+        - CLOSED
+    unique-key-columns:
+      - document_type
+      - document_number
+    reject-all-duplicates: false
+    error-threshold-percent: 1.0
+    abort-on-threshold-breach: true
+
+  transformation-config:
+    source-timezone: "UTC"
+    date-format: "yyyy-MM-dd"
+    date-fields:
+      - registration_date
+      - birth_date
+    null-values:
+      - ""
+      - "NULL"
+      - "N/A"
+      - "-"
+
+  retry-policy:
+    max-retries: 5
+    retry-delay-ms: 120000
+    retry-on-errors:
+      - EXTERNAL_INTEGRATION
+      - TECHNICAL
+
+  schedule-config:
+    cron: "0 0 1 * * *"
+    timezone: "UTC"
+    allowed-windows:
+      - start: "00:30"
+        end: "03:00"
+        days:
+          - MONDAY
+          - TUESDAY
+          - WEDNESDAY
+          - THURSDAY
+          - FRIDAY
+          - SATURDAY
+          - SUNDAY

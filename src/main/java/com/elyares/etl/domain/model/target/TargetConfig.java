@@ -1,6 +1,7 @@
 package com.elyares.etl.domain.model.target;
 
 import com.elyares.etl.domain.enums.LoadStrategy;
+import com.elyares.etl.domain.enums.RollbackStrategy;
 import com.elyares.etl.domain.enums.TargetType;
 
 import java.util.List;
@@ -41,6 +42,21 @@ public final class TargetConfig {
     /** Número de registros procesados por lote en cada operación de inserción. */
     private final int chunkSize;
 
+    /** Si un chunk fallido debe abortar inmediatamente la carga a staging. */
+    private final boolean failFastOnChunkError;
+
+    /** Estrategia de rollback a aplicar cuando la promoción final falla críticamente. */
+    private final RollbackStrategy rollbackStrategy;
+
+    /** Si la protección de registros cerrados está habilitada para UPSERT. */
+    private final boolean closedRecordGuardEnabled;
+
+    /** Columna que indica que un registro del destino ya no debe actualizarse. */
+    private final String closedFlagColumn;
+
+    /** Valor considerado "cerrado" en la columna de guardia. */
+    private final String closedFlagValue;
+
     /**
      * Construye una nueva instancia de {@code TargetConfig} con los parámetros especificados.
      *
@@ -63,6 +79,17 @@ public final class TargetConfig {
      */
     public TargetConfig(TargetType type, String schema, String stagingTable, String finalTable,
                         LoadStrategy loadStrategy, List<String> businessKeyColumns, int chunkSize) {
+        this(type, schema, stagingTable, finalTable, loadStrategy, businessKeyColumns, chunkSize,
+            true, RollbackStrategy.DELETE_BY_EXECUTION, true, "status", "CLOSED");
+    }
+
+    /**
+     * Construye una configuración completa de destino incluyendo semántica de Fase 6.
+     */
+    public TargetConfig(TargetType type, String schema, String stagingTable, String finalTable,
+                        LoadStrategy loadStrategy, List<String> businessKeyColumns, int chunkSize,
+                        boolean failFastOnChunkError, RollbackStrategy rollbackStrategy,
+                        boolean closedRecordGuardEnabled, String closedFlagColumn, String closedFlagValue) {
         this.type = Objects.requireNonNull(type);
         this.schema = schema != null ? schema : "public";
         this.stagingTable = stagingTable;
@@ -70,6 +97,11 @@ public final class TargetConfig {
         this.loadStrategy = loadStrategy != null ? loadStrategy : LoadStrategy.UPSERT;
         this.businessKeyColumns = businessKeyColumns != null ? List.copyOf(businessKeyColumns) : List.of();
         this.chunkSize = chunkSize > 0 ? chunkSize : 1000;
+        this.failFastOnChunkError = failFastOnChunkError;
+        this.rollbackStrategy = rollbackStrategy != null ? rollbackStrategy : RollbackStrategy.DELETE_BY_EXECUTION;
+        this.closedRecordGuardEnabled = closedRecordGuardEnabled;
+        this.closedFlagColumn = closedFlagColumn != null && !closedFlagColumn.isBlank() ? closedFlagColumn : "status";
+        this.closedFlagValue = closedFlagValue != null ? closedFlagValue : "CLOSED";
     }
 
     /**
@@ -120,6 +152,31 @@ public final class TargetConfig {
      * @return número de registros por lote; siempre mayor que cero
      */
     public int getChunkSize() { return chunkSize; }
+
+    /**
+     * Indica si un fallo de chunk debe abortar inmediatamente la carga a staging.
+     */
+    public boolean isFailFastOnChunkError() { return failFastOnChunkError; }
+
+    /**
+     * Devuelve la estrategia de rollback configurada para la promoción final.
+     */
+    public RollbackStrategy getRollbackStrategy() { return rollbackStrategy; }
+
+    /**
+     * Indica si el guard de registros cerrados está habilitado.
+     */
+    public boolean isClosedRecordGuardEnabled() { return closedRecordGuardEnabled; }
+
+    /**
+     * Devuelve la columna usada por el guard de registros cerrados.
+     */
+    public String getClosedFlagColumn() { return closedFlagColumn; }
+
+    /**
+     * Devuelve el valor que representa un registro cerrado.
+     */
+    public String getClosedFlagValue() { return closedFlagValue; }
 
     /**
      * Indica si esta configuración define una tabla de staging para carga intermedia.

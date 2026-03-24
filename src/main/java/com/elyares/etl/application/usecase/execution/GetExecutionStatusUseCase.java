@@ -4,7 +4,7 @@ import com.elyares.etl.application.dto.ExecutionStatusDto;
 import com.elyares.etl.application.mapper.ExecutionMapper;
 import com.elyares.etl.domain.contract.ExecutionRepository;
 import com.elyares.etl.domain.valueobject.ExecutionId;
-import com.elyares.etl.shared.exception.EtlException;
+import com.elyares.etl.shared.exception.ExecutionNotFoundException;
 
 /**
  * Caso de uso para consultar estado resumido de una ejecución.
@@ -23,9 +23,6 @@ public class GetExecutionStatusUseCase {
     public ExecutionStatusDto execute(String executionId) {
         return executionRepository.findByExecutionId(ExecutionId.of(executionId))
             .map(executionMapper::toStatusDto)
-            .orElseThrow(() -> new EtlException(
-                "ETL_EXEC_NOT_FOUND",
-                "Execution not found: " + executionId
-            ));
+            .orElseThrow(() -> new ExecutionNotFoundException(executionId));
     }
 }

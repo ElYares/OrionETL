@@ -16,6 +16,10 @@ import com.elyares.etl.domain.valueobject.ErrorThreshold;
  */
 public class DataQualityService {
 
+    public DataQualityReport evaluateQuality(long totalRead, long totalRejected, double thresholdPercent) {
+        return DataQualityReport.of(totalRead, totalRejected, thresholdPercent);
+    }
+
     /**
      * Genera un {@link DataQualityReport} con la evaluación de calidad del lote.
      *
@@ -27,7 +31,7 @@ public class DataQualityService {
     public DataQualityReport evaluateQuality(long totalRead,
                                               long totalRejected,
                                               ErrorThreshold errorThreshold) {
-        return DataQualityReport.of(totalRead, totalRejected, errorThreshold.percentValue());
+        return evaluateQuality(totalRead, totalRejected, errorThreshold.percentValue());
     }
 
     /**
