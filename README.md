@@ -19,6 +19,9 @@
 ## Overview
 
 OrionETL está diseñado para ejecutar pipelines configurados por YAML y llevar cada ejecución desde la extracción hasta la carga final con observabilidad y control operativo.
+# OrionETL
+
+Motor ETL empresarial construido con Java 21 y Spring Boot 3 para extraer, transformar, validar y cargar datos con trazabilidad completa.
 
 ## Qué hace
 
