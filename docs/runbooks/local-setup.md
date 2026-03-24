@@ -378,12 +378,12 @@ After adding, compile changes with `mvn compile` and the application restarts au
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---|---|
-| `Connection refused` to PostgreSQL on port 5432 | Verify `docker-compose up -d` ran successfully. Check `docker ps` for `orionetl-db` status. |
-| `Flyway migration failed: checksum mismatch` | A migration file was modified after it was applied. Run `./scripts/reset-db.sh` to start fresh (dev only). |
-| `No active pipeline found: sales-daily` | Pipeline YAML config not loaded. Check `application-local.yml` for the pipeline config path. Check application startup logs. |
-| Testcontainers tests fail with `Could not find a valid Docker environment` | Docker Desktop is not running. Start Docker Desktop and re-run. |
-| `Port 8080 already in use` | Another process is using port 8080. Stop it or change `server.port` in `application-local.yml`. |
-| MapStruct generated mappers not found | Ensure annotation processing is enabled in IDE. Run `mvn compile` to trigger annotation processor. |
-| `Lombok @Slf4j not recognized` | Lombok plugin not installed in IDE, or annotation processing not enabled. See IDE setup section. |
+| Problem                                                                    | Solution                                                                                                                     |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `Connection refused` to PostgreSQL on port 5432                            | Verify `docker-compose up -d` ran successfully. Check `docker ps` for `orionetl-db` status.                                  |
+| `Flyway migration failed: checksum mismatch`                               | A migration file was modified after it was applied. Run `./scripts/reset-db.sh` to start fresh (dev only).                   |
+| `No active pipeline found: sales-daily`                                    | Pipeline YAML config not loaded. Check `application-local.yml` for the pipeline config path. Check application startup logs. |
+| Testcontainers tests fail with `Could not find a valid Docker environment` | Docker Desktop is not running. Start Docker Desktop and re-run.                                                              |
+| `Port 8080 already in use`                                                 | Another process is using port 8080. Stop it or change `server.port` in `application-local.yml`.                              |
+| MapStruct generated mappers not found                                      | Ensure annotation processing is enabled in IDE. Run `mvn compile` to trigger annotation processor.                           |
+| `Lombok @Slf4j not recognized`                                             | Lombok plugin not installed in IDE, or annotation processing not enabled. See IDE setup section.                             |
