@@ -1,6 +1,24 @@
-# OrionETL
+<p align="center">
+  <img src="./assets/orionetl-logo.png" alt="OrionETL Logo" width="260" />
+</p>
 
-Motor ETL empresarial construido con Java 21 y Spring Boot 3 para extraer, transformar, validar y cargar datos con trazabilidad completa.
+<h1 align="center">OrionETL</h1>
+
+<p align="center">
+  Motor ETL empresarial construido con Java 21 y Spring Boot 3.
+</p>
+
+<p align="center">
+  Extrae, transforma, valida y carga datos con trazabilidad completa, auditoría y ejecución por pipelines.
+</p>
+
+<p align="center">
+  <strong>CSV</strong> · <strong>API</strong> · <strong>EXCEL</strong> · <strong>DATABASE</strong>
+</p>
+
+## Overview
+
+OrionETL está diseñado para ejecutar pipelines configurados por YAML y llevar cada ejecución desde la extracción hasta la carga final con observabilidad y control operativo.
 
 ## Qué hace
 
@@ -20,6 +38,14 @@ Pipelines V1 implementados:
 - `sales-daily`
 - `inventory-sync`
 - `customer-sync`
+- `item-sync`
+
+## Quick Links
+
+- [Quick Start](#quick-start)
+- [API principal](#api-principal)
+- [Documentación completa](#documentación-completa)
+- [Flujo para crear nuevos pipelines CSV](./docs/flujo.md)
 
 ## Quick Start
 
