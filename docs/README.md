@@ -53,6 +53,7 @@ When a pipeline is triggered (via REST API, CLI, or scheduler), OrionETL execute
 
 ### Architecture
 - [Architecture Overview](./architecture/overview.md) — Philosophy, layers, dependency rules, execution flow
+- [Current Architecture Context](./architecture/current-architecture-context.md) — Guía rápida del estado real, diagramas y mapa de clases para editar rápido
 - [Project Structure](./architecture/project-structure.md) — Full Maven directory tree with explanations
 - [Domain Model](./architecture/domain-model.md) — Entities, value objects, domain services, contracts, enums
 - [Execution Flow](./architecture/execution-flow.md) — Detailed step-by-step ETL execution with error handling
@@ -81,11 +82,21 @@ When a pipeline is triggered (via REST API, CLI, or scheduler), OrionETL execute
 
 ### Runbooks
 - [Running a Pipeline](./runbooks/running-a-pipeline.md) — How to trigger, monitor, and debug executions
+- [Entender OrionETL](./runbooks/understanding-orionetl.md) — Explicación simple del flujo completo, estado actual, entradas y salidas
+- [Using Phase 4 Extractors](./runbooks/using-phase4-extractors.md) — Cómo trabajar, validar y visualizar CSV/API extractors
 - [Local Setup](./runbooks/local-setup.md) — Developer environment setup guide
 
 ### Planning
 - [Action Plan](./action-plan.md) — Phased implementation roadmap (10 phases, 12 weeks)
+- [Bitácora Fase 4](./bitacora-fase4.md) — Extractores CSV y API completados
+- [Bitácora Fase 5](./bitacora-fase5.md) — Transformadores y validadores base implementados
+- [Bitácora Fase 6](./bitacora-fase6.md) — Loaders JDBC, staging validation y promoción a final
+- [Bitácora Fase 7](./bitacora-fase7.md) — Primer pipeline end-to-end real: Sales
+- [Bitácora Fase 8](./bitacora-fase8.md) — REST API, monitoreo y health indicator
+- [Bitácora Fase 9](./bitacora-fase9.md) — Pipelines Inventory y Customer + ExcelExtractor
+- [Bitácora Fase 10](./bitacora-fase10.md) — Hardening final V1: retries automáticos, notifications, Docker y roadmap V2
 - [Command Reference](./cmd.md) — Comandos operativos de Docker, tests unitarios e IT
+- [V2 Roadmap](./architecture/v2-roadmap.md) — Diseño de la siguiente versión del motor
 
 ---
 
@@ -97,29 +108,37 @@ V1 focuses on building a stable, well-tested ETL engine with manual orchestratio
 
 | Feature | Status |
 |---|---|
-| Pipeline configuration model | Planned |
-| Manual ETL orchestrator | Planned |
-| CSV and API extractors | Planned |
-| Common transformer + pipeline-specific transformers | Planned |
-| Schema and business validators | Planned |
-| Staging → final load strategy | Planned |
-| Full audit trail | Planned |
-| REST API for execution and monitoring | Planned |
-| Sales, Inventory, Customer pipelines | Planned |
-| Testcontainers-based integration tests | Planned |
-| Docker Compose local environment | Planned |
+| Pipeline configuration model | Completed |
+| Manual ETL orchestrator | Completed |
+| CSV and API extractors | Completed |
+| Excel extractor | Completed |
+| Database extractor | Completed |
+| Common transformer + pipeline-specific transformers | Completed |
+| Schema and business validators | Completed |
+| Staging → final load strategy | Completed |
+| Full audit trail | Completed |
+| REST API for execution and monitoring | Completed |
+| Automatic retry mechanism | Completed |
+| Log-based notifications | Completed |
+| Sales pipeline end-to-end | Completed |
+| Inventory and Customer pipelines | Completed |
+| Testcontainers-based integration tests | Completed |
+| Docker Compose local environment | Completed |
+| Root README and operational docs | Completed |
 
 ### V2 — Advanced Capabilities (Roadmap)
 
-V2 introduces scheduling, Spring Batch for chunk-level restartability, and operational tooling.
+Detalle completo:
+
+- [V2 Roadmap](./architecture/v2-roadmap.md)
 
 | Feature | Description |
 |---|---|
 | Spring Batch migration | Replace manual orchestrator with formal Job/Step/Chunk model. Enables restart-from-checkpoint. |
 | Cron-based scheduler | Trigger pipelines on configured schedules using Spring Scheduler or Quartz |
 | Monitoring dashboard | Web UI for execution status, metrics, rejected record inspection |
-| ExcelExtractor (Apache POI) | Full support for multi-sheet Excel workbooks |
-| DatabaseExtractor | Cursor-based extraction from relational sources via JDBC |
+| ExcelExtractor (Apache POI) | Completed in V1 |
+| DatabaseExtractor optimization | Advanced cursor tuning and vendor-specific extraction improvements |
 | Webhook notifications | Alert on failure/success via configurable webhook endpoints |
 | Pipeline versioning UI | Visual diff of pipeline config versions |
 | Dead-letter queue | Route persistently failing records to a dedicated review queue |
@@ -138,4 +157,4 @@ V2 introduces scheduling, Spring Batch for chunk-level restartability, and opera
 
 ---
 
-*Documentation maintained alongside source code. Last updated: 2026-03-22.*
+*Documentation maintained alongside source code. Last updated: 2026-03-24.*

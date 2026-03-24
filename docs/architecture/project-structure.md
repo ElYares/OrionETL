@@ -128,13 +128,13 @@ OrionETL/
 
 ### Root Files
 
-| File | Purpose |
-|---|---|
-| `pom.xml` | Maven build descriptor. Declares Java 21, Spring Boot 3.x parent, all dependencies, and plugin config (compiler, Surefire, Failsafe). |
-| `Dockerfile` | Multi-stage Docker build: compile with Maven → package into a minimal JRE 21 image. |
-| `docker-compose.yml` | Local development compose file: starts PostgreSQL 15, sets env vars, mounts init scripts. |
-| `.env.example` | Template for local environment variables (DB credentials, Spring profile, etc.). Copy to `.env` before running. |
-| `README.md` | Root-level project README with quick start, build instructions, and links to documentation. |
+| File                 | Purpose                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `pom.xml`            | Maven build descriptor. Declares Java 21, Spring Boot 3.x parent, all dependencies, and plugin config (compiler, Surefire, Failsafe). |
+| `Dockerfile`         | Multi-stage Docker build: compile with Maven → package into a minimal JRE 21 image.                                                   |
+| `docker-compose.yml` | Local development compose file: starts PostgreSQL 15, sets env vars, mounts init scripts.                                             |
+| `.env.example`       | Template for local environment variables (DB credentials, Spring profile, etc.). Copy to `.env` before running.                       |
+| `README.md`          | Root-level project README with quick start, build instructions, and links to documentation.                                           |
 
 ---
 

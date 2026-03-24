@@ -4,6 +4,14 @@ Extractors are the first active component in every ETL pipeline. They are respon
 
 All extractors implement the `DataExtractor` domain contract and live in `infrastructure/extractor/`.
 
+## Current Status (2026-03-23)
+
+- `ExtractorRegistry`: implemented.
+- `CsvExtractor`: implemented and tested (unit + integration + Kaggle dataset run in Docker).
+- `ApiExtractor`: implemented and tested (pagination, auth, retry, HTTP error wrapping).
+- `ExcelExtractor`: implemented and tested for `.xlsx`.
+- `DatabaseExtractor`: implemented and tested with PostgreSQL/Testcontainers.
+
 ---
 
 ## Domain Contract
@@ -223,6 +231,50 @@ source-config:
 - **Retry on 5xx:** configurable number of retries with exponential backoff for transient server errors.
 - **Request filtering:** supports `updated_since` or similar filter parameters for incremental sync.
 - **Timeout:** configurable per request (default: 30 seconds).
+
+---
+
+## DatabaseExtractor
+
+**Location:** `infrastructure/extractor/database/DatabaseExtractor.java`
+**Source Type:** `SourceType.DATABASE`
+**Library:** Spring JDBC (`JdbcTemplate` + named parameter utilities)
+
+### Features
+
+- JDBC connection resolved from `SourceConfig.location` or `connectionProperties.jdbcUrl`.
+- Username/password from `connectionProperties` or env indirection (`usernameEnv`, `passwordEnv`).
+- Query execution with named parameters using `queryParam.*`.
+- Optional explicit parameter typing with `queryParamType.*` or `queryParamTypes.*`.
+- `fetchSize` hint on the prepared statement for cursor-friendly reads.
+- Result rows mapped to `RawRecord` preserving database column labels.
+
+### Configuration Example
+
+```yaml
+source-config:
+  type: DATABASE
+  location: "jdbc:postgresql://postgres:5432/analytics"
+  connection-properties:
+    username: "reader"
+    password: "${DB_PASSWORD}"
+    query: >
+      SELECT order_id, customer_id, amount, status
+      FROM source_orders
+      WHERE status = :status
+        AND amount >= :minAmount
+      ORDER BY order_id
+    fetchSize: "500"
+    queryParam.status: "OPEN"
+    queryParam.minAmount: "10.00"
+    queryParamType.minAmount: "DECIMAL"
+```
+
+### Operational Notes
+
+- V1 implementation is synchronous and optimized for straightforward relational reads.
+- It is appropriate for pull-style ingestion from PostgreSQL and similar JDBC sources.
+- Advanced cross-database features such as vendor-specific cursors or partitioned parallel reads remain V2 work.
 
 ### Implementation Sketch
 

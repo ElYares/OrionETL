@@ -56,11 +56,11 @@ Open `.env` in your editor and review/fill in the values:
 # .env (local development — do NOT commit this file)
 
 # PostgreSQL connection
-POSTGRES_DB=orionetl_local
-POSTGRES_USER=orionetl
-POSTGRES_PASSWORD=orionetl_local_pass
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_HOST=
+POSTGRES_PORT=
 
 # Spring active profile
 SPRING_PROFILES_ACTIVE=local
